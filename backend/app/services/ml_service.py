@@ -57,7 +57,7 @@ class MLService:
         }])
         
         prediction = self.model.predict(df)
-        val = float(prediction[0]) * 10.0 # Convert g/m2 to kg/ha
+        val = float(prediction[0])
         return round(max(val, 0.0), 1)
 
 ml_service = MLService()
