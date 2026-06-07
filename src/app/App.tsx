@@ -36,7 +36,14 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Auth state
-  const [user, setUser] = useState<UserType | null>(null);
+  const [user, setUser] = useState<UserType | null>(() => {
+    try {
+      const stored = localStorage.getItem("user_data");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("register");
   const [gateMode, setGateMode] = useState<"login" | "register">("register");
@@ -79,6 +86,8 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("user_data");
+    localStorage.removeItem("access_token");
     setUser(null);
     setUserMenuOpen(false);
     setPage("beranda");
