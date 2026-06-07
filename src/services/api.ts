@@ -1,6 +1,6 @@
 // src/services/api.ts
 
-const API_URL = import.meta.env.VITE_API_URL || "/api";
+const API_URL = "/api";
 
 function getToken() {
   return localStorage.getItem("access_token");
