@@ -220,7 +220,8 @@ export function AuthModal({ mode, onClose, onLogin, onSwitchMode, isGateMode = f
         password: reg.password
       };
       
-      const res = await fetch("/api/auth/register", {
+      const API_URL = import.meta.env.VITE_API_URL || "/api";
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -263,7 +264,8 @@ export function AuthModal({ mode, onClose, onLogin, onSwitchMode, isGateMode = f
         password: login.password
       };
       
-      const res = await fetch("/api/auth/login", {
+      const API_URL = import.meta.env.VITE_API_URL || "/api";
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
