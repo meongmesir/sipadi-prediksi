@@ -7,30 +7,33 @@ interface Prediksi {
   id: number;
   petani: string;
   provinsi: string;
-  kabupaten: string;
   luas: number;
-  varietas: string;
-  jenisLahan: string;
-  hasil: number;
-  harga: number;
+  cultivar: string;
+  waterCode: string;
+  sowingDoy: number;
+  nTotal: number;
+  plantPop: number;
+  yieldKgHa: number;
   kategori: "Sangat Baik" | "Baik" | "Cukup" | "Perlu Perhatian";
-  pendapatan: number;
   tanggal: string;
 }
 
+// Kategori berdasarkan yield (kg/ha) relatif terhadap rata-rata nasional ~4207 kg/ha
+// Sangat Baik: >8000, Baik: >5000, Cukup: >3000, Perlu Perhatian: ≤3000
+
 const MOCK: Prediksi[] = [
-  { id: 1,  petani: "Budi Santoso",    provinsi: "Jawa Tengah",      kabupaten: "Klaten",        luas: 1.5, varietas: "Ciherang",  jenisLahan: "Irigasi Teknis",    hasil: 5.6, harga: 5800, kategori: "Sangat Baik",    pendapatan: 48720000, tanggal: "14 Apr 2026" },
-  { id: 2,  petani: "Siti Rahayu",     provinsi: "Jawa Barat",       kabupaten: "Majalengka",    luas: 0.8, varietas: "Inpari 32", jenisLahan: "Irigasi Teknis",    hasil: 5.1, harga: 5750, kategori: "Baik",           pendapatan: 23460000, tanggal: "14 Apr 2026" },
-  { id: 3,  petani: "Ahmad Dahlan",    provinsi: "Sulawesi Selatan", kabupaten: "Bone",          luas: 2.0, varietas: "Mekongga",  jenisLahan: "Setengah Teknis",   hasil: 4.3, harga: 5700, kategori: "Cukup",          pendapatan: 49020000, tanggal: "14 Apr 2026" },
-  { id: 4,  petani: "Dewi Sartika",    provinsi: "Jawa Timur",       kabupaten: "Ngawi",         luas: 0.5, varietas: "IR64",      jenisLahan: "Tadah Hujan",       hasil: 3.8, harga: 5600, kategori: "Perlu Perhatian",pendapatan: 10640000, tanggal: "14 Apr 2026" },
-  { id: 5,  petani: "Rudi Hartono",    provinsi: "Sumatera Utara",   kabupaten: "Deli Serdang",  luas: 1.2, varietas: "Ciherang",  jenisLahan: "Irigasi Teknis",    hasil: 5.3, harga: 5800, kategori: "Baik",           pendapatan: 36912000, tanggal: "13 Apr 2026" },
-  { id: 6,  petani: "Fatimah Zahra",   provinsi: "NTB",              kabupaten: "Lombok Tengah", luas: 0.7, varietas: "Inpari 30", jenisLahan: "Irigasi Teknis",    hasil: 5.8, harga: 5850, kategori: "Sangat Baik",    pendapatan: 23765500, tanggal: "13 Apr 2026" },
-  { id: 7,  petani: "Maria Goreti",    provinsi: "NTT",              kabupaten: "Ende",          luas: 1.0, varietas: "Situ Bagendit", jenisLahan: "Tadah Hujan",   hasil: 4.0, harga: 5500, kategori: "Cukup",          pendapatan: 22000000, tanggal: "13 Apr 2026" },
-  { id: 8,  petani: "Sukardi",         provinsi: "DI Yogyakarta",    kabupaten: "Bantul",        luas: 0.6, varietas: "Ciherang",  jenisLahan: "Setengah Teknis",   hasil: 4.9, harga: 5750, kategori: "Baik",           pendapatan: 16905000, tanggal: "12 Apr 2026" },
-  { id: 9,  petani: "Yusuf Maulana",   provinsi: "Aceh",             kabupaten: "Aceh Utara",    luas: 1.8, varietas: "Inpari 32", jenisLahan: "Irigasi Teknis",    hasil: 5.5, harga: 5750, kategori: "Sangat Baik",    pendapatan: 56925000, tanggal: "12 Apr 2026" },
-  { id: 10, petani: "Ratna Dewi",      provinsi: "Jawa Tengah",      kabupaten: "Demak",         luas: 1.1, varietas: "IR64",      jenisLahan: "Irigasi Teknis",    hasil: 4.6, harga: 5700, kategori: "Baik",           pendapatan: 28842000, tanggal: "11 Apr 2026" },
-  { id: 11, petani: "Ningrum Wati",    provinsi: "Bali",             kabupaten: "Tabanan",       luas: 0.4, varietas: "Ciherang",  jenisLahan: "Irigasi Teknis",    hasil: 5.2, harga: 5900, kategori: "Baik",           pendapatan: 12272000, tanggal: "11 Apr 2026" },
-  { id: 12, petani: "Setiawan",        provinsi: "Jawa Barat",       kabupaten: "Indramayu",     luas: 2.5, varietas: "Inpari 32", jenisLahan: "Irigasi Teknis",    hasil: 6.0, harga: 5800, kategori: "Sangat Baik",    pendapatan: 87000000, tanggal: "10 Apr 2026" },
+  { id: 1,  petani: "Budi Santoso",    provinsi: "Jawa Tengah",      luas: 1.5, cultivar: "IR 72", waterCode: "A", sowingDoy: 152, nTotal: 150, plantPop: 30, yieldKgHa: 9240, kategori: "Sangat Baik",    tanggal: "14 Apr 2026" },
+  { id: 2,  petani: "Siti Rahayu",     provinsi: "Jawa Barat",       luas: 0.8, cultivar: "IR 64", waterCode: "A", sowingDoy: 121, nTotal: 125, plantPop: 25, yieldKgHa: 5810, kategori: "Baik",           tanggal: "14 Apr 2026" },
+  { id: 3,  petani: "Ahmad Dahlan",    provinsi: "Sulawesi Selatan", luas: 2.0, cultivar: "IR 72", waterCode: "N", sowingDoy: 182, nTotal: 75,  plantPop: 20, yieldKgHa: 3940, kategori: "Cukup",          tanggal: "14 Apr 2026" },
+  { id: 4,  petani: "Dewi Sartika",    provinsi: "Jawa Timur",       luas: 0.5, cultivar: "IR 36", waterCode: "N", sowingDoy: 219, nTotal: 0,   plantPop: 15, yieldKgHa: 1220, kategori: "Perlu Perhatian", tanggal: "14 Apr 2026" },
+  { id: 5,  petani: "Rudi Hartono",    provinsi: "Sumatera Utara",   luas: 1.2, cultivar: "IR 64", waterCode: "A", sowingDoy: 152, nTotal: 125, plantPop: 30, yieldKgHa: 5640, kategori: "Baik",           tanggal: "13 Apr 2026" },
+  { id: 6,  petani: "Fatimah Zahra",   provinsi: "NTB",              luas: 0.7, cultivar: "IR 72", waterCode: "A", sowingDoy: 121, nTotal: 175, plantPop: 35, yieldKgHa: 10120, kategori: "Sangat Baik",   tanggal: "13 Apr 2026" },
+  { id: 7,  petani: "Maria Goreti",    provinsi: "NTT",              luas: 1.0, cultivar: "IR 36", waterCode: "N", sowingDoy: 182, nTotal: 25,  plantPop: 15, yieldKgHa: 2140, kategori: "Perlu Perhatian", tanggal: "13 Apr 2026" },
+  { id: 8,  petani: "Sukardi",         provinsi: "DI Yogyakarta",    luas: 0.6, cultivar: "IR 64", waterCode: "A", sowingDoy: 152, nTotal: 100, plantPop: 25, yieldKgHa: 4920, kategori: "Baik",           tanggal: "12 Apr 2026" },
+  { id: 9,  petani: "Yusuf Maulana",   provinsi: "Aceh",             luas: 1.8, cultivar: "IR 72", waterCode: "A", sowingDoy: 121, nTotal: 200, plantPop: 40, yieldKgHa: 13083, kategori: "Sangat Baik",   tanggal: "12 Apr 2026" },
+  { id: 10, petani: "Ratna Dewi",      provinsi: "Jawa Tengah",      luas: 1.1, cultivar: "IR 64", waterCode: "A", sowingDoy: 152, nTotal: 75,  plantPop: 25, yieldKgHa: 4310, kategori: "Baik",           tanggal: "11 Apr 2026" },
+  { id: 11, petani: "Ningrum Wati",    provinsi: "Bali",             luas: 0.4, cultivar: "IR 72", waterCode: "A", sowingDoy: 121, nTotal: 125, plantPop: 30, yieldKgHa: 6870, kategori: "Baik",           tanggal: "11 Apr 2026" },
+  { id: 12, petani: "Setiawan",        provinsi: "Jawa Barat",       luas: 2.5, cultivar: "IR 72", waterCode: "A", sowingDoy: 152, nTotal: 175, plantPop: 35, yieldKgHa: 11540, kategori: "Sangat Baik",   tanggal: "10 Apr 2026" },
 ];
 
 const kategoriCfg = {
@@ -40,14 +43,16 @@ const kategoriCfg = {
   "Perlu Perhatian":{ color: "bg-red-100 text-red-700",      dot: "bg-red-500" },
 };
 
-const VARIETAS_LIST = ["Semua Varietas", "Ciherang", "Inpari 32", "Inpari 30", "IR64", "Mekongga", "Situ Bagendit"];
+const VARIETAS_LIST = ["Semua Varietas", "IR 72", "IR 64", "IR 36"];
 const KATEGORI_LIST = ["Semua Kategori", "Sangat Baik", "Baik", "Cukup", "Perlu Perhatian"];
+const WATER_LABEL: Record<string, string> = { A: "Irigasi", N: "Tadah Hujan" };
 const PER_PAGE = 8;
 
 // ─── Detail Modal ─────────────────────────────────────────────────────────────
 
 function DetailModal({ p, onClose }: { p: Prediksi; onClose: () => void }) {
   const cfg = kategoriCfg[p.kategori];
+  const totalKg = Math.round(p.yieldKgHa * p.luas);
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm">
@@ -64,19 +69,25 @@ function DetailModal({ p, onClose }: { p: Prediksi; onClose: () => void }) {
             {p.kategori}
           </span>
 
+          {/* Hasil utama */}
+          <div className="bg-green-50 rounded-2xl p-4 text-center">
+            <p className="text-gray-500 text-xs mb-1">Estimasi Hasil Panen</p>
+            <p className="text-green-800 font-bold text-2xl">{p.yieldKgHa.toLocaleString("id-ID")} kg/ha</p>
+            <p className="text-gray-500 text-sm mt-1">≈ {totalKg.toLocaleString("id-ID")} kg total ({p.luas} Ha)</p>
+          </div>
+
           {/* Info grid */}
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: "Petani", val: p.petani },
               { label: "Tanggal", val: p.tanggal },
               { label: "Provinsi", val: p.provinsi },
-              { label: "Kabupaten", val: p.kabupaten },
               { label: "Luas Lahan", val: `${p.luas} Ha` },
-              { label: "Varietas", val: p.varietas },
-              { label: "Jenis Lahan", val: p.jenisLahan },
-              { label: "Hasil Panen", val: `${p.hasil} t/ha` },
-              { label: "Harga Gabah", val: `Rp ${p.harga.toLocaleString("id-ID")}/kg` },
-              { label: "Est. Pendapatan", val: `Rp ${(p.pendapatan / 1e6).toFixed(1)}jt` },
+              { label: "Varietas", val: p.cultivar },
+              { label: "Waktu Tanam", val: `DOY ${p.sowingDoy}` },
+              { label: "Dosis Nitrogen", val: `${p.nTotal} kg/ha` },
+              { label: "Kepadatan Tanam", val: `${p.plantPop} tan/m²` },
+              { label: "Sistem Pengairan", val: WATER_LABEL[p.waterCode] },
             ].map((r) => (
               <div key={r.label} className="bg-gray-50 rounded-xl p-3">
                 <p className="text-gray-400 text-xs">{r.label}</p>
@@ -105,9 +116,8 @@ export function AdminPrediksi() {
 
   const filtered = MOCK.filter((p) => {
     const matchSearch = p.petani.toLowerCase().includes(search.toLowerCase()) ||
-      p.kabupaten.toLowerCase().includes(search.toLowerCase()) ||
       p.provinsi.toLowerCase().includes(search.toLowerCase());
-    const matchVarietas = varietasFilter === "Semua Varietas" || p.varietas === varietasFilter;
+    const matchVarietas = varietasFilter === "Semua Varietas" || p.cultivar === varietasFilter;
     const matchKategori = kategoriFilter === "Semua Kategori" || p.kategori === kategoriFilter;
     return matchSearch && matchVarietas && matchKategori;
   });
@@ -115,7 +125,7 @@ export function AdminPrediksi() {
   const totalPage = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
-  const rataHasil = (MOCK.reduce((s, p) => s + p.hasil, 0) / MOCK.length).toFixed(1);
+  const rataHasil = Math.round(MOCK.reduce((s, p) => s + p.yieldKgHa, 0) / MOCK.length);
 
   return (
     <div className="space-y-5">
@@ -124,7 +134,7 @@ export function AdminPrediksi() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-gray-900 font-bold text-2xl">Data Prediksi</h1>
-          <p className="text-gray-500 text-sm">{MOCK.length} prediksi · rata-rata {rataHasil} t/ha</p>
+          <p className="text-gray-500 text-sm">{MOCK.length} prediksi · rata-rata {rataHasil.toLocaleString("id-ID")} kg/ha</p>
         </div>
         <button className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-sm">
           <Download className="w-4 h-4" />
@@ -135,14 +145,15 @@ export function AdminPrediksi() {
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Sangat Baik", n: MOCK.filter((p) => p.kategori === "Sangat Baik").length, color: "bg-green-50 border-green-200 text-green-700" },
-          { label: "Baik",        n: MOCK.filter((p) => p.kategori === "Baik").length,        color: "bg-blue-50 border-blue-200 text-blue-700" },
-          { label: "Cukup",       n: MOCK.filter((p) => p.kategori === "Cukup").length,       color: "bg-amber-50 border-amber-200 text-amber-700" },
-          { label: "Perlu Perhatian", n: MOCK.filter((p) => p.kategori === "Perlu Perhatian").length, color: "bg-red-50 border-red-200 text-red-700" },
+          { label: "Sangat Baik",    n: MOCK.filter((p) => p.kategori === "Sangat Baik").length,    color: "bg-green-50 border-green-200 text-green-700",  sub: ">8.000 kg/ha" },
+          { label: "Baik",           n: MOCK.filter((p) => p.kategori === "Baik").length,           color: "bg-blue-50 border-blue-200 text-blue-700",     sub: "5.000–8.000 kg/ha" },
+          { label: "Cukup",          n: MOCK.filter((p) => p.kategori === "Cukup").length,          color: "bg-amber-50 border-amber-200 text-amber-700",  sub: "3.000–5.000 kg/ha" },
+          { label: "Perlu Perhatian",n: MOCK.filter((p) => p.kategori === "Perlu Perhatian").length,color: "bg-red-50 border-red-200 text-red-700",        sub: "<3.000 kg/ha" },
         ].map((c) => (
           <div key={c.label} className={`rounded-2xl border p-4 ${c.color}`}>
             <p className="text-2xl font-bold">{c.n}</p>
             <p className="text-sm font-medium mt-0.5">{c.label}</p>
+            <p className="text-xs opacity-70 mt-1">{c.sub}</p>
           </div>
         ))}
       </div>
@@ -153,7 +164,7 @@ export function AdminPrediksi() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Cari petani, kabupaten, provinsi..."
+            placeholder="Cari petani atau provinsi..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             className="w-full border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none transition-all"
@@ -186,7 +197,7 @@ export function AdminPrediksi() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                {["#", "Petani", "Lokasi", "Varietas", "Luas", "Hasil (t/ha)", "Harga/kg", "Kategori", "Tanggal", ""].map((h) => (
+                {["#", "Petani", "Provinsi", "Varietas", "Luas", "Pengairan", "N (kg/ha)", "Yield (kg/ha)", "Kategori", "Tanggal", ""].map((h) => (
                   <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">
                     {h}
                   </th>
@@ -195,7 +206,7 @@ export function AdminPrediksi() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {paginated.length === 0 ? (
-                <tr><td colSpan={10} className="px-5 py-12 text-center text-gray-400 text-sm">Tidak ada hasil yang cocok</td></tr>
+                <tr><td colSpan={11} className="px-5 py-12 text-center text-gray-400 text-sm">Tidak ada hasil yang cocok</td></tr>
               ) : (
                 paginated.map((p) => {
                   const cfg = kategoriCfg[p.kategori];
@@ -206,15 +217,18 @@ export function AdminPrediksi() {
                         <p className="text-gray-800 text-sm font-semibold whitespace-nowrap">{p.petani}</p>
                       </td>
                       <td className="px-5 py-4">
-                        <p className="text-gray-500 text-sm whitespace-nowrap">{p.kabupaten}, {p.provinsi.split(" ").slice(-1)[0]}</p>
+                        <p className="text-gray-500 text-sm whitespace-nowrap">{p.provinsi}</p>
                       </td>
-                      <td className="px-5 py-4 text-gray-600 text-sm whitespace-nowrap">{p.varietas}</td>
+                      <td className="px-5 py-4 text-gray-600 text-sm whitespace-nowrap">{p.cultivar}</td>
                       <td className="px-5 py-4 text-gray-600 text-sm">{p.luas} Ha</td>
                       <td className="px-5 py-4">
-                        <span className="text-gray-800 font-bold text-sm">{p.hasil}</span>
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${p.waterCode === "A" ? "bg-sky-100 text-sky-700" : "bg-orange-100 text-orange-700"}`}>
+                          {WATER_LABEL[p.waterCode]}
+                        </span>
                       </td>
-                      <td className="px-5 py-4 text-gray-600 text-sm whitespace-nowrap">
-                        Rp {p.harga.toLocaleString("id-ID")}
+                      <td className="px-5 py-4 text-gray-600 text-sm">{p.nTotal}</td>
+                      <td className="px-5 py-4">
+                        <span className="text-gray-800 font-bold text-sm">{p.yieldKgHa.toLocaleString("id-ID")}</span>
                       </td>
                       <td className="px-5 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${cfg.color}`}>

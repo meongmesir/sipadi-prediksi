@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchWithAuth } from "../../../services/api";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine,
@@ -16,20 +17,7 @@ interface HargaProvinsi {
   delta: number;
 }
 
-const MOCK_HARGA: HargaProvinsi[] = [
-  { provinsi: "Jawa Tengah",       hargaSaatIni: 5850, hpp: 6500, updatedAt: "14 Apr 2026", trend: "naik",   delta: 50 },
-  { provinsi: "Jawa Barat",        hargaSaatIni: 5800, hpp: 6500, updatedAt: "14 Apr 2026", trend: "naik",   delta: 30 },
-  { provinsi: "Jawa Timur",        hargaSaatIni: 5780, hpp: 6500, updatedAt: "13 Apr 2026", trend: "stabil", delta: 0 },
-  { provinsi: "Sulawesi Selatan",  hargaSaatIni: 5700, hpp: 6500, updatedAt: "13 Apr 2026", trend: "turun",  delta: -20 },
-  { provinsi: "Sumatera Utara",    hargaSaatIni: 5820, hpp: 6500, updatedAt: "12 Apr 2026", trend: "naik",   delta: 70 },
-  { provinsi: "NTB",               hargaSaatIni: 5650, hpp: 6500, updatedAt: "12 Apr 2026", trend: "stabil", delta: 0 },
-  { provinsi: "NTT",               hargaSaatIni: 5500, hpp: 6500, updatedAt: "11 Apr 2026", trend: "turun",  delta: -30 },
-  { provinsi: "Bali",              hargaSaatIni: 5900, hpp: 6500, updatedAt: "11 Apr 2026", trend: "naik",   delta: 40 },
-  { provinsi: "DI Yogyakarta",     hargaSaatIni: 5750, hpp: 6500, updatedAt: "10 Apr 2026", trend: "stabil", delta: 0 },
-  { provinsi: "Kalimantan Selatan",hargaSaatIni: 5680, hpp: 6500, updatedAt: "10 Apr 2026", trend: "naik",   delta: 25 },
-  { provinsi: "Aceh",              hargaSaatIni: 5720, hpp: 6500, updatedAt: "9 Apr 2026",  trend: "naik",   delta: 15 },
-  { provinsi: "Sumatera Selatan",  hargaSaatIni: 5600, hpp: 6500, updatedAt: "9 Apr 2026",  trend: "turun",  delta: -40 },
-];
+// ─── Mock Data (Tren Nasional) ────────────────────────────────────────────────
 
 const trenNasional = [
   { bulan: "Okt", harga: 5400, prediksi: null },
@@ -122,22 +110,72 @@ function EditModal({ item, onSave, onClose }: {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AdminHarga() {
-  const [data, setData] = useState<HargaProvinsi[]>(MOCK_HARGA);
+  const [data, setData] = useState<HargaProvinsi[]>([]);
   const [editing, setEditing] = useState<HargaProvinsi | null>(null);
-  const [hpp, setHpp] = useState(6500);
+  const [loading, setLoading] = useState(true);
+  const [hppVal, setHppVal] = useState("6500");
   const [editHpp, setEditHpp] = useState(false);
-  const [hppVal, setHppVal] = useState(hpp.toString());
 
-  const rataHarga = Math.round(data.reduce((s, d) => s + d.hargaSaatIni, 0) / data.length);
-  const diAtasHpp = data.filter((d) => d.hargaSaatIni >= hpp).length;
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const handleSave = (provinsi: string, harga: number) => {
-    setData((prev) => prev.map((d) =>
-      d.provinsi === provinsi
-        ? { ...d, hargaSaatIni: harga, updatedAt: "14 Apr 2026", trend: harga > d.hargaSaatIni ? "naik" : harga < d.hargaSaatIni ? "turun" : "stabil", delta: harga - d.hargaSaatIni }
-        : d
-    ));
+  const fetchData = () => {
+    setLoading(true);
+    fetchWithAuth('/admin/harga')
+      .then((res: any[]) => {
+        const mapped = res.map((r) => ({
+          provinsi: r.provinsi,
+          hargaSaatIni: r.harga_saat_ini,
+          hpp: r.hpp,
+          updatedAt: new Date(r.updated_at).toLocaleDateString("id-ID"),
+          trend: "stabil" as const,
+          delta: 0
+        }));
+        setData(mapped);
+        if (mapped.length > 0) {
+          setHppVal(mapped[0].hpp.toString());
+        }
+      })
+      .catch((err: any) => console.error("Error fetching harga:", err))
+      .finally(() => setLoading(false));
   };
+
+  const handleSave = async (provinsi: string, val: number) => {
+    try {
+      await fetchWithAuth(`/admin/harga/update?provinsi=${encodeURIComponent(provinsi)}`, {
+        method: "POST",
+        body: JSON.stringify({ harga_saat_ini: val })
+      });
+      fetchData();
+    } catch (err) {
+      alert("Gagal menyimpan harga: " + err);
+    }
+  };
+
+  const handleSaveHppGlobally = async () => {
+    const v = parseInt(hppVal, 10);
+    if (v >= 4000 && v <= 15000) {
+      try {
+        await Promise.all(data.map(d => 
+          fetchWithAuth(`/admin/harga/update?provinsi=${encodeURIComponent(d.provinsi)}`, {
+            method: "POST",
+            body: JSON.stringify({ hpp: v })
+          })
+        ));
+        fetchData();
+      } catch (err) {
+        alert("Gagal menyimpan HPP global: " + err);
+      }
+    }
+    setEditHpp(false);
+  };
+
+  const hpp = parseInt(hppVal, 10) || 6500;
+  const rataHarga = data.length ? Math.round(data.reduce((acc, d) => acc + d.hargaSaatIni, 0) / data.length) : 0;
+  const diAtasHpp = data.filter((d) => d.hargaSaatIni >= d.hpp).length;
+
+  if (loading) return <div className="p-8 text-center text-gray-500">Memuat data harga...</div>;
 
   return (
     <div className="space-y-5">
@@ -163,7 +201,7 @@ export function AdminHarga() {
             {editHpp ? (
               <div className="flex gap-1">
                 <button
-                  onClick={() => { const v = parseInt(hppVal, 10); if (v >= 4000 && v <= 15000) { setHpp(v); } setEditHpp(false); }}
+                  onClick={handleSaveHppGlobally}
                   className="p-1 rounded-lg bg-green-700 text-white"
                 >
                   <Save className="w-3.5 h-3.5" />
@@ -259,16 +297,16 @@ export function AdminHarga() {
                     <td className="px-5 py-4">
                       <span className="text-gray-900 font-bold text-sm">Rp {d.hargaSaatIni.toLocaleString("id-ID")}</span>
                     </td>
-                    <td className="px-5 py-4 text-gray-500 text-sm">Rp {hpp.toLocaleString("id-ID")}</td>
+                    <td className="px-5 py-4 text-gray-500 text-sm">Rp {d.hpp.toLocaleString("id-ID")}</td>
                     <td className="px-5 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        diAtasHppItem
+                        d.hargaSaatIni >= d.hpp
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                       }`}>
-                        {diAtasHppItem
-                          ? `+Rp ${(d.hargaSaatIni - hpp).toLocaleString("id-ID")}`
-                          : `−Rp ${(hpp - d.hargaSaatIni).toLocaleString("id-ID")}`}
+                        {d.hargaSaatIni >= d.hpp
+                          ? `+Rp ${(d.hargaSaatIni - d.hpp).toLocaleString("id-ID")}`
+                          : `−Rp ${(d.hpp - d.hargaSaatIni).toLocaleString("id-ID")}`}
                       </span>
                     </td>
                     <td className="px-5 py-4">

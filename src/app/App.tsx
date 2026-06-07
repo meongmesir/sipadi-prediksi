@@ -9,49 +9,7 @@ import { RiwayatPrediksi } from "./components/RiwayatPrediksi";
 import { AuthModal } from "./components/AuthModal";
 import { AdminApp } from "./components/admin/AdminApp";
 
-// ─── Exported Types ───────────────────────────────────────────────────────────
-
-export interface DataLahan {
-  namaLahan: string;
-  provinsi: string;
-  kabupaten: string;
-  luasLahan: string;
-  jenisLahan: string;
-  varietasPadi: string;
-  musimTanam: string;
-  kondisiIrigasi: string;
-  kondisiHama: string;
-  dosisBenih: string;
-  dosisUrea: string;
-  dosisNPK: string;
-  frekuensiPestisida: string;
-  biayaProduksi: string;
-}
-
-export interface HasilType {
-  data: DataLahan;
-  hasilPerHa: number;
-  hasilTotal: number;
-  rataRataDaerah: number;
-  selisihRataRata: number;
-  hargaSaatIni: number;
-  estimasiPendapatan: number;
-  estimasiKeuntungan: number;
-  kategori: "Sangat Baik" | "Baik" | "Cukup" | "Perlu Perhatian";
-  persentasePotensi: number;
-  prediksiHarga: { bulan: string; harga: number; jenis: "aktual" | "prediksi" }[];
-  waktuJualTerbaik: string;
-  catatanRisiko: string[];
-  rekomendasi: string[];
-}
-
-export interface UserType {
-  namaLengkap: string;
-  email: string;
-  noHP?: string;
-  provinsi: string;
-  role?: "petani" | "admin" | "superadmin";
-}
+import type { HasilType, UserType } from "../types";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -139,6 +97,10 @@ export default function App() {
     setPage("hasil");
   };
 
+  const handleHapusRiwayat = (index: number) => {
+    setRiwayat((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const navigateTo = (p: Page) => {
     setPage(p);
     setMobileMenuOpen(false);
@@ -198,9 +160,8 @@ export default function App() {
             <div className="space-y-3">
               {[
                 { emoji: "📊", text: "Prediksi hasil panen berdasarkan data lahan Anda" },
-                { emoji: "📈", text: "Tren harga gabah 3 bulan ke depan" },
-                { emoji: "🌤️", text: "Data cuaca otomatis dari BMKG" },
-                { emoji: "📋", text: "Rekomendasi standar Kementan & Balitbangtan" },
+                { emoji: "🔬", text: "Berbasis data simulasi pertanian yang teruji" },
+                { emoji: "🗺️", text: "Mencakup 38 provinsi di seluruh Indonesia" },
                 { emoji: "📁", text: "Simpan & akses riwayat prediksi kapan saja" },
               ].map((f) => (
                 <div key={f.text} className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-3 border border-white/10">
@@ -247,7 +208,7 @@ export default function App() {
         </div>
 
         <div className="text-center text-green-500 text-xs pb-6">
-          © 2026 SiPadiPrediksi · Kementan RI · BMKG · Balitbangtan
+          © 2026 SiPadiPrediksi · Dikembangkan oleh Tim RSI
         </div>
       </div>
     );
@@ -460,8 +421,6 @@ export default function App() {
         )}
         {page === "riwayat" && (
           <RiwayatPrediksi
-            riwayat={riwayat}
-            onLihat={handleLihatRiwayat}
             onPrediksi={() => navigateTo("form")}
           />
         )}

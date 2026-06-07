@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchWithAuth } from "../../../services/api";
 import {
   Search, Plus, Eye, UserCheck, UserX, X,
   Mail, Shield, Clock, ChevronLeft, ChevronRight,
@@ -17,46 +18,7 @@ interface AdminData {
   status: "Aktif" | "Nonaktif";
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_ADMINS: AdminData[] = [
-  {
-    id: 1,
-    nama: "Budi Wijaya",
-    email: "budi.admin@sipadi.id",
-    tglDibuat: "1 Jan 2026",
-    loginTerakhir: "Hari ini · 09:30 WIB",
-    jumlahAksi: 142,
-    status: "Aktif",
-  },
-  {
-    id: 2,
-    nama: "Dewi Kusuma",
-    email: "dewi.admin@sipadi.id",
-    tglDibuat: "15 Feb 2026",
-    loginTerakhir: "Kemarin · 14:22 WIB",
-    jumlahAksi: 87,
-    status: "Aktif",
-  },
-  {
-    id: 3,
-    nama: "Hendra Gunawan",
-    email: "hendra.admin@sipadi.id",
-    tglDibuat: "1 Mar 2026",
-    loginTerakhir: "3 hari lalu · 11:15",
-    jumlahAksi: 213,
-    status: "Aktif",
-  },
-  {
-    id: 4,
-    nama: "Sari Indah",
-    email: "sari.admin@sipadi.id",
-    tglDibuat: "20 Mar 2026",
-    loginTerakhir: "9 Apr 2026 · 16:45",
-    jumlahAksi: 34,
-    status: "Nonaktif",
-  },
-];
+// ─── Mock Data Dihapus, Menggunakan API ──────────────────────────────────────
 
 const statusCfg = {
   Aktif:    { color: "bg-green-100 text-green-700 border-green-200", dot: "bg-green-500" },
@@ -345,12 +307,31 @@ function TambahAdminModal({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AdminKelolaAdmin() {
-  const [admins, setAdmins] = useState<AdminData[]>(MOCK_ADMINS);
+  const [admins, setAdmins] = useState<AdminData[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Semua");
   const [currentPage, setCurrentPage] = useState(1);
   const [selected, setSelected] = useState<AdminData | null>(null);
   const [showTambah, setShowTambah] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWithAuth('/admin/users')
+      .then((data: any[]) => {
+        const mapped = data.map((u: any) => ({
+          id: u.id,
+          nama: u.nama_lengkap,
+          email: u.email,
+          tglDibuat: "Ditentukan oleh DB",
+          loginTerakhir: "Baru-baru ini",
+          jumlahAksi: u.role === "superadmin" ? 99 : 10,
+          status: "Aktif" as const
+        }));
+        setAdmins(mapped);
+      })
+      .catch((err) => console.error("Gagal mengambil data user:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Filter
   const filtered = admins.filter((a) => {

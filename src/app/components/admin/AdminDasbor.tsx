@@ -1,59 +1,29 @@
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 import {
-  Users, BarChart3, TrendingUp, DollarSign,
+  Users, BarChart3, TrendingUp,
   ArrowUpRight, ArrowDownRight, ChevronRight,
-  MapPin, Sprout, AlertTriangle, Crown, Shield, Activity,
+  MapPin, Sprout, AlertTriangle, Crown, Shield,
 } from "lucide-react";
 import type { AdminPage } from "./AdminApp";
+import { useState, useEffect } from "react";
+import { fetchWithAuth } from "../../../services/api";
+
+// ─── Interfaces ───────────────────────────────────────────────────────────────
+
+interface DasborStats {
+  total_users: number;
+  total_predictions: number;
+  avg_yield: number;
+  top_provinsi: any[];
+  distribusi_varietas: any[];
+  prediksi_per_bulan: any[];
+  aktivitas_terbaru: any[];
+}
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const prediksiPerBulan = [
-  { bulan: "Nov", jumlah: 98 },
-  { bulan: "Des", jumlah: 134 },
-  { bulan: "Jan", jumlah: 112 },
-  { bulan: "Feb", jumlah: 145 },
-  { bulan: "Mar", jumlah: 167 },
-  { bulan: "Apr", jumlah: 187 },
-];
-
-const distribusiVarietas = [
-  { varietas: "Ciherang",  persen: 34, warna: "#15803d" },
-  { varietas: "Inpari 32", persen: 24, warna: "#16a34a" },
-  { varietas: "IR64",      persen: 17, warna: "#22c55e" },
-  { varietas: "Inpari 30", persen: 13, warna: "#4ade80" },
-  { varietas: "Mekongga",  persen: 8,  warna: "#86efac" },
-  { varietas: "Lainnya",   persen: 4,  warna: "#bbf7d0" },
-];
-
-const trenHargaNasional = [
-  { bulan: "Okt", harga: 5400 },
-  { bulan: "Nov", harga: 5520 },
-  { bulan: "Des", harga: 5680 },
-  { bulan: "Jan", harga: 5750 },
-  { bulan: "Feb", harga: 5820 },
-  { bulan: "Mar", harga: 5790 },
-  { bulan: "Apr", harga: 5850 },
-];
-
-const topProvinsi = [
-  { provinsi: "Jawa Tengah",    pengguna: 38, prediksi: 214, rata: 5.4 },
-  { provinsi: "Jawa Timur",     pengguna: 29, prediksi: 178, rata: 5.1 },
-  { provinsi: "Jawa Barat",     pengguna: 24, prediksi: 153, rata: 5.2 },
-  { provinsi: "Sulawesi Sel.",  pengguna: 14, prediksi: 87,  rata: 5.0 },
-  { provinsi: "Sumatera Utara", pengguna: 11, prediksi: 64,  rata: 4.8 },
-];
-
-const aktivitasTerbaru = [
-  { petani: "Budi Santoso",    lokasi: "Klaten, Jateng",    varietas: "Ciherang",  hasil: 5.6, kategori: "Sangat Baik", waktu: "5 menit lalu" },
-  { petani: "Siti Rahayu",     lokasi: "Majalengka, Jabar", varietas: "Inpari 32", hasil: 5.1, kategori: "Baik",        waktu: "18 menit lalu" },
-  { petani: "Ahmad Dahlan",    lokasi: "Bone, Sulsel",      varietas: "Mekongga",  hasil: 4.3, kategori: "Cukup",       waktu: "42 menit lalu" },
-  { petani: "Dewi Sartika",    lokasi: "Ngawi, Jatim",      varietas: "IR64",      hasil: 3.8, kategori: "Perlu Perhatian", waktu: "1 jam lalu" },
-  { petani: "Rudi Hartono",    lokasi: "Deli Serdang, Sumut", varietas: "Ciherang", hasil: 5.3, kategori: "Baik",      waktu: "2 jam lalu" },
-];
 
 const kategoriCfg = {
   "Sangat Baik":    { color: "bg-green-100 text-green-700",  dot: "bg-green-500" },
@@ -103,12 +73,26 @@ function KpiCard({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-interface Props {
-  onNavigate: (page: AdminPage) => void;
-  role: "admin" | "superadmin";
-}
+export function AdminDasbor({ onNavigate, role }: { onNavigate: (page: AdminPage) => void; role: "admin" | "superadmin" }) {
+  const [stats, setStats] = useState<DasborStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export function AdminDasbor({ onNavigate, role }: Props) {
+  useEffect(() => {
+    fetchWithAuth('/admin/dashboard/stats')
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load dashboard stats", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading || !stats) {
+    return <div className="p-8 text-center text-gray-500">Memuat data dasbor...</div>;
+  }
+  
   const isSuperAdmin = role === "superadmin";
   return (
     <div className="space-y-6">
@@ -160,7 +144,7 @@ export function AdminDasbor({ onNavigate, role }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiCard
           label="Total Pengguna"
-          nilai="127"
+          nilai={stats.total_users.toString()}
           sub="dari bulan lalu"
           icon={Users}
           iconBg="bg-green-700"
@@ -169,7 +153,7 @@ export function AdminDasbor({ onNavigate, role }: Props) {
         />
         <KpiCard
           label="Total Prediksi"
-          nilai="843"
+          nilai={stats.total_predictions.toString()}
           sub="dari bulan lalu"
           icon={BarChart3}
           iconBg="bg-blue-600"
@@ -177,22 +161,21 @@ export function AdminDasbor({ onNavigate, role }: Props) {
           delta="+11.2%"
         />
         <KpiCard
-          label="Rata-rata Hasil"
-          nilai="5,2 t/ha"
+          label="Rata-rata Hasil Panen"
+          nilai={`${stats.avg_yield.toLocaleString("id-ID")} kg/ha`}
           sub="musim tanam ini"
           icon={Sprout}
           iconBg="bg-teal-600"
           naik
-          delta="+0.3"
+          delta="+613"
         />
         <KpiCard
-          label="Harga Gabah Nasional"
-          nilai="Rp 5.850"
-          sub="per kg · Apr 2026"
-          icon={DollarSign}
+          label="Prediksi Terbaik"
+          nilai="11.240 kg/ha"
+          sub="hasil tertinggi bulan ini"
+          icon={TrendingUp}
           iconBg="bg-amber-500"
           naik
-          delta="+0.7%"
         />
       </div>
 
@@ -276,7 +259,7 @@ export function AdminDasbor({ onNavigate, role }: Props) {
             </button>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={prediksiPerBulan} barSize={28}>
+            <BarChart data={stats.prediksi_per_bulan} barSize={28}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="bulan" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
@@ -285,8 +268,8 @@ export function AdminDasbor({ onNavigate, role }: Props) {
                 formatter={(v: number) => [`${v} prediksi`, "Jumlah"]}
               />
               <Bar dataKey="jumlah" radius={[6, 6, 0, 0]}>
-                {prediksiPerBulan.map((_, i) => (
-                  <Cell key={i} fill={i === prediksiPerBulan.length - 1 ? "#15803d" : "#86efac"} />
+                {stats.prediksi_per_bulan.map((_, i) => (
+                  <Cell key={i} fill={i === stats.prediksi_per_bulan.length - 1 ? "#15803d" : "#86efac"} />
                 ))}
               </Bar>
             </BarChart>
@@ -298,7 +281,7 @@ export function AdminDasbor({ onNavigate, role }: Props) {
           <h3 className="text-gray-800 font-bold text-base mb-1">Varietas Padi</h3>
           <p className="text-gray-400 text-sm mb-4">Distribusi seluruh prediksi</p>
           <div className="space-y-3">
-            {distribusiVarietas.map((v) => (
+            {stats.distribusi_varietas.map((v) => (
               <div key={v.varietas}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-gray-700 text-sm">{v.varietas}</span>
@@ -316,78 +299,39 @@ export function AdminDasbor({ onNavigate, role }: Props) {
         </div>
       </div>
 
-      {/* ── Row 3: Tren Harga + Top Provinsi ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Tren Harga Nasional */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-gray-800 font-bold text-base">Tren Harga Gabah Nasional</h3>
-              <p className="text-gray-400 text-sm">Rata-rata nasional (Rp/kg)</p>
-            </div>
-            <button
-              onClick={() => onNavigate("harga")}
-              className="text-green-700 text-sm font-semibold hover:underline flex items-center gap-1"
-            >
-              Kelola <ChevronRight className="w-4 h-4" />
-            </button>
+      {/* ── Row 3: Top Provinsi ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-gray-800 font-bold text-base">Top Provinsi</h3>
+            <p className="text-gray-400 text-sm">Pengguna aktif & rata-rata yield</p>
           </div>
-          <ResponsiveContainer width="100%" height={190}>
-            <LineChart data={trenHargaNasional}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="bulan" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis
-                tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false}
-                domain={[5000, 6200]}
-                tickFormatter={(v) => `${(v / 1000).toFixed(1)}k`}
-              />
-              <Tooltip
-                contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 13 }}
-                formatter={(v: number) => [`Rp ${v.toLocaleString("id-ID")}`, "Harga"]}
-              />
-              <Line
-                type="monotone" dataKey="harga" stroke="#15803d" strokeWidth={2.5}
-                dot={{ fill: "#15803d", r: 4 }} activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <MapPin className="w-4 h-4 text-gray-300" />
         </div>
-
-        {/* Top Provinsi */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-gray-800 font-bold text-base">Top Provinsi</h3>
-              <p className="text-gray-400 text-sm">Pengguna aktif</p>
-            </div>
-            <MapPin className="w-4 h-4 text-gray-300" />
-          </div>
-          <div className="space-y-3">
-            {topProvinsi.map((p, i) => (
-              <div key={p.provinsi} className="flex items-center gap-3">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                  i === 0 ? "bg-amber-400 text-white" : "bg-gray-100 text-gray-500"
-                }`}>
-                  {i + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-gray-700 text-sm font-medium truncate">{p.provinsi}</p>
-                  <p className="text-gray-400 text-xs">{p.prediksi} prediksi · {p.rata} t/ha</p>
-                </div>
-                <span className="text-gray-500 text-sm font-semibold flex-shrink-0">{p.pengguna}</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {stats.top_provinsi.map((p, i) => (
+            <div key={p.provinsi} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50">
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                i === 0 ? "bg-amber-400 text-white" : i === 1 ? "bg-gray-300 text-gray-700" : "bg-gray-100 text-gray-500"
+              }`}>
+                {i + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-gray-700 text-sm font-medium truncate">{p.provinsi}</p>
+                <p className="text-gray-400 text-xs">{p.prediksi} prediksi · {(p.rata * 1000).toLocaleString("id-ID")} kg/ha rata-rata</p>
               </div>
-            ))}
-          </div>
-          {isSuperAdmin && (
-            <button
-              onClick={() => onNavigate("pengguna")}
-              className="w-full mt-4 text-violet-700 text-sm font-semibold hover:underline flex items-center justify-center gap-1"
-            >
-              Lihat semua pengguna <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
+              <span className="text-gray-500 text-sm font-semibold flex-shrink-0">{p.pengguna}</span>
+            </div>
+          ))}
         </div>
+        {isSuperAdmin && (
+          <button
+            onClick={() => onNavigate("pengguna")}
+            className="w-full mt-4 text-violet-700 text-sm font-semibold hover:underline flex items-center justify-center gap-1"
+          >
+            Lihat semua pengguna <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* ── Row 4: Aktivitas Terbaru ── */}
@@ -408,7 +352,7 @@ export function AdminDasbor({ onNavigate, role }: Props) {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                {["Petani", "Lokasi", "Varietas", "Hasil (t/ha)", "Kategori", "Waktu"].map((h) => (
+                {["Petani", "Provinsi", "Varietas", "Hasil (kg/ha)", "Kategori", "Waktu"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">
                     {h}
                   </th>
@@ -416,21 +360,21 @@ export function AdminDasbor({ onNavigate, role }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {aktivitasTerbaru.map((a, i) => {
-                const cfg = kategoriCfg[a.kategori as keyof typeof kategoriCfg];
+              {stats.aktivitas_terbaru.map((a, i) => {
+                const cfg = kategoriCfg[a.kategori as keyof typeof kategoriCfg] || { color: "bg-gray-100 text-gray-700", dot: "bg-gray-500" };
                 return (
                   <tr key={i} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3.5">
                       <p className="text-gray-800 text-sm font-semibold">{a.petani}</p>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-gray-500 text-sm">{a.lokasi}</p>
+                       <p className="text-gray-500 text-sm">{a.lokasi}</p>
                     </td>
                     <td className="px-5 py-3.5">
                       <p className="text-gray-700 text-sm">{a.varietas}</p>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-gray-800 text-sm font-bold">{a.hasil}</p>
+                      <p className="text-gray-800 text-sm font-bold">{a.hasil.toLocaleString("id-ID")}</p>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.color}`}>

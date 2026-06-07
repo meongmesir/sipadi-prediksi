@@ -7,16 +7,8 @@ import type { UserType } from "../App";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const provinsiList = [
-  "Aceh", "Sumatera Utara", "Sumatera Barat", "Riau", "Jambi",
-  "Sumatera Selatan", "Bengkulu", "Lampung", "Kepulauan Bangka Belitung",
-  "Kepulauan Riau", "DKI Jakarta", "Jawa Barat", "Jawa Tengah",
-  "DI Yogyakarta", "Jawa Timur", "Banten", "Bali", "NTB", "NTT",
-  "Kalimantan Barat", "Kalimantan Tengah", "Kalimantan Selatan", "Kalimantan Timur",
-  "Kalimantan Utara", "Sulawesi Utara", "Sulawesi Tengah", "Sulawesi Selatan",
-  "Sulawesi Tenggara", "Gorontalo", "Sulawesi Barat", "Maluku", "Maluku Utara",
-  "Papua Barat", "Papua",
-];
+import { provinsiList } from "../../utils/constants";
+
 
 const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 const validateHP = (v: string) =>
@@ -219,18 +211,44 @@ export function AuthModal({ mode, onClose, onLogin, onSwitchMode, isGateMode = f
     if (Object.keys(errs).length > 0) return;
 
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1600));
-    setLoading(false);
-    setSuccess(true);
-
-    setTimeout(() => {
-      onLogin({
-        namaLengkap: reg.namaLengkap.trim(),
+    try {
+      const payload = {
+        nama_lengkap: reg.namaLengkap.trim(),
         email: reg.email.trim().toLowerCase(),
-        noHP: reg.noHP.trim() || undefined,
+        no_hp: reg.noHP.trim() || undefined,
         provinsi: reg.provinsi,
+        password: reg.password
+      };
+      
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
-    }, 2200);
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Registrasi gagal");
+      }
+      
+      const data = await res.json();
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user_data", JSON.stringify(data.user));
+      
+      setSuccess(true);
+      setTimeout(() => {
+        onLogin({
+          namaLengkap: data.user.nama_lengkap,
+          email: data.user.email,
+          provinsi: data.user.provinsi,
+          role: data.user.role
+        });
+      }, 2200);
+    } catch (error: any) {
+      setRegErr({ email: error.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogin = async () => {
@@ -239,30 +257,38 @@ export function AuthModal({ mode, onClose, onLogin, onSwitchMode, isGateMode = f
     if (Object.keys(errs).length > 0) return;
 
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1100));
-    setLoading(false);
-
-    // Deteksi akun admin
-    const isAdmin =
-      login.emailOrHP.trim().toLowerCase() === "admin@sipadi.id" &&
-      login.password === "Admin123";
-
-    const isSuperAdmin =
-      login.emailOrHP.trim().toLowerCase() === "superadmin@sipadi.id" &&
-      login.password === "SuperAdmin123";
-
-    onLogin({
-      namaLengkap: isSuperAdmin
-        ? "Super Administrator"
-        : isAdmin
-        ? "Administrator SiPadi"
-        : "Petani Pengguna",
-      email: login.emailOrHP.includes("@")
-        ? login.emailOrHP.trim().toLowerCase()
-        : `${login.emailOrHP.replace(/\D/g, "")}@sipadi.id`,
-      provinsi: isSuperAdmin || isAdmin ? "Pusat — Jakarta" : "Jawa Tengah",
-      role: isSuperAdmin ? "superadmin" : isAdmin ? "admin" : "petani",
-    });
+    try {
+      const payload = {
+        email: login.emailOrHP.trim().toLowerCase(),
+        password: login.password
+      };
+      
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Login gagal");
+      }
+      
+      const data = await res.json();
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user_data", JSON.stringify(data.user));
+      
+      onLogin({
+        namaLengkap: data.user.nama_lengkap,
+        email: data.user.email,
+        provinsi: data.user.provinsi,
+        role: data.user.role
+      });
+    } catch (error: any) {
+      setLoginErr({ emailOrHP: error.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ── Render ──

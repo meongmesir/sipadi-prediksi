@@ -1,32 +1,31 @@
-import { ChevronRight, Leaf, ShieldCheck, BarChart3, Star, MapPin } from "lucide-react";
+import { ChevronRight, Leaf, ShieldCheck, BarChart3 } from "lucide-react";
 
 const HERO_IMG = "https://images.unsplash.com/photo-1730251567643-3794cc0db1d5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyaWNlJTIwcGFkZHklMjBmaWVsZCUyMGhhcnZlc3QlMjBncmVlbiUyMEluZG9uZXNpYXxlbnwxfHx8fDE3NzYwODI2ODF8MA&ixlib=rb-4.1.0&q=80&w=1080";
-const FARMER_IMG = "https://images.unsplash.com/photo-1602511706963-02ecf61637b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXJtZXIlMjBpbmRvbmVzaWElMjByaWNlJTIwZmllbGQlMjB3b3JraW5nfGVufDF8fHx8MTc3NjA4MjY4MXww&ixlib=rb-4.1.0&q=80&w=1080";
 
 const fitur = [
   {
     emoji: "📊",
     icon: BarChart3,
-    judul: "Estimasi Hasil Panen",
-    desc: "Masukkan data lahan padi Anda. Sistem menghitung estimasi hasil panen dalam ton per hektar secara otomatis.",
+    judul: "Prediksi Hasil Panen",
+    desc: "Masukkan data lahan padi Anda. Sistem menghitung estimasi hasil panen dalam kg per hektar secara otomatis.",
     warna: "border-green-200 bg-green-50",
     ikonBg: "bg-green-100",
     ikonWarna: "text-green-700",
   },
   {
-    emoji: "💰",
+    emoji: "🔬",
     icon: BarChart3,
-    judul: "Prediksi Harga Gabah",
-    desc: "Lihat prediksi harga gabah 1 hingga 3 bulan ke depan agar Anda bisa memilih waktu jual terbaik.",
+    judul: "Berbasis Data Ilmiah",
+    desc: "Prediksi dibangun dari data simulasi pertanian yang telah teruji — bukan angka perkiraan asal.",
     warna: "border-amber-200 bg-amber-50",
     ikonBg: "bg-amber-100",
     ikonWarna: "text-amber-700",
   },
   {
-    emoji: "🌤️",
+    emoji: "🗺️",
     icon: ShieldCheck,
-    judul: "Data Cuaca Otomatis",
-    desc: "Data cuaca dari BMKG langsung tampil sesuai lokasi Anda — tidak perlu isi manual, lebih akurat dan mudah.",
+    judul: "Seluruh Indonesia",
+    desc: "Mencakup 38 provinsi di Indonesia. Cukup pilih lokasi, data wilayah Anda langsung terisi otomatis.",
     warna: "border-sky-200 bg-sky-50",
     ikonBg: "bg-sky-100",
     ikonWarna: "text-sky-700",
@@ -35,7 +34,7 @@ const fitur = [
     emoji: "⚠️",
     icon: ShieldCheck,
     judul: "Peringatan Risiko",
-    desc: "Sistem memberi tahu risiko gagal panen dan saran cara mengatasinya berdasarkan kondisi lahan Anda.",
+    desc: "Sistem memberi tahu risiko yang mungkin terjadi dan memberikan saran tindakan untuk mengatasinya.",
     warna: "border-red-200 bg-red-50",
     ikonBg: "bg-red-100",
     ikonWarna: "text-red-700",
@@ -43,35 +42,12 @@ const fitur = [
 ];
 
 const langkah = [
-  { no: "1", emoji: "📍", judul: "Pilih Lokasi", desc: "Masukkan provinsi dan kabupaten lahan padi Anda." },
-  { no: "2", emoji: "📝", judul: "Isi Data Lahan", desc: "Luas lahan, jenis sawah, varietas padi, dan kondisi irigasi." },
-  { no: "3", emoji: "⚙️", judul: "Cek Rekomendasi", desc: "Nilai pupuk dan benih sudah terisi otomatis — ubah jika perlu." },
-  { no: "4", emoji: "📊", judul: "Lihat Hasil", desc: "Estimasi panen, prediksi harga, dan saran terbaik untuk Anda." },
+  { no: "1", emoji: "📍", judul: "Pilih Lokasi", desc: "Pilih provinsi lahan padi Anda — data wilayah otomatis terisi." },
+  { no: "2", emoji: "📝", judul: "Isi Data Lahan", desc: "Varietas, waktu tanam, dosis pupuk, kepadatan tanam, dan sistem pengairan." },
+  { no: "3", emoji: "📊", judul: "Lihat Hasil", desc: "Prediksi hasil panen, perbandingan dengan rata-rata nasional, dan saran tindakan." },
 ];
 
-const testimoni = [
-  {
-    nama: "Pak Suharto",
-    lokasi: "Petani Padi, Jawa Tengah",
-    pesan: "Sekarang saya tahu perkiraan panen sebelum panen tiba. Bisa persiapkan modal lebih baik!",
-    bintang: 5,
-    emoji: "👨‍🌾",
-  },
-  {
-    nama: "Bu Sari",
-    lokasi: "Petani Padi, Jawa Barat",
-    pesan: "Mudah dipakai, tidak ribet. Data cuaca sudah otomatis masuk, saya tidak perlu isi sendiri.",
-    bintang: 5,
-    emoji: "👩‍🌾",
-  },
-  {
-    nama: "Pak Ridwan",
-    lokasi: "Petani Padi, Sulawesi Selatan",
-    pesan: "Prediksi harga gabahnya membantu saya menentukan waktu jual yang lebih menguntungkan.",
-    bintang: 5,
-    emoji: "🧑‍🌾",
-  },
-];
+
 
 interface Props {
   onMulai: () => void;
@@ -100,7 +76,7 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
             ) : (
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-sm px-4 py-2 rounded-full mb-4 border border-white/30">
                 <Leaf className="w-4 h-4" />
-                Khusus Komoditas Padi — Data Cuaca Otomatis BMKG
+                Khusus Komoditas Padi — Prediksi Berbasis Data Ilmiah
               </div>
             )}
             <h1 className="text-white text-3xl md:text-4xl font-bold leading-tight mb-3">
@@ -109,7 +85,7 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
               Lebih Menguntungkan
             </h1>
             <p className="text-green-100 text-base leading-relaxed mb-6 max-w-sm">
-              Bantu petani padi Indonesia merencanakan panen dan menentukan waktu jual terbaik.
+              Bantu petani padi Indonesia merencanakan panen dengan teknologi kecerdasan buatan.
               Isi data lahan — hasil prediksi langsung tampil dalam hitungan detik.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -136,9 +112,9 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
       {/* ── Info Strip (factual only) ── */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { nilai: "34 Provinsi", label: "Cakupan Nasional", emoji: "🗺️" },
-          { nilai: "7 Varietas", label: "Pilihan Padi Unggulan", emoji: "🌾" },
-          { nilai: "BMKG Live", label: "Data Cuaca Otomatis", emoji: "🌤️" },
+          { nilai: "38 Provinsi", label: "Cakupan Nasional", emoji: "🗺️" },
+          { nilai: "3 Varietas", label: "Pilihan Padi Unggulan", emoji: "🌾" },
+          { nilai: "Akurat", label: "Prediksi Berbasis Data", emoji: "🎯" },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-2xl p-5 text-center shadow-sm border border-gray-100">
             <p className="text-3xl mb-1">{s.emoji}</p>
@@ -200,8 +176,8 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
       {/* ── Cara Pakai ── */}
       <div className="bg-white rounded-3xl p-7 md:p-10 shadow-sm border border-gray-100">
         <h2 className="text-gray-800 font-bold text-xl mb-2 text-center">Cara Menggunakan</h2>
-        <p className="text-gray-500 text-base text-center mb-8">Hanya 4 langkah mudah</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <p className="text-gray-500 text-base text-center mb-8">Hanya 3 langkah mudah</p>
+        <div className="grid grid-cols-3 gap-5">
           {langkah.map((l, i) => (
             <div key={l.no} className="text-center relative">
               {i < langkah.length - 1 && (
@@ -231,46 +207,7 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
         </div>
       </div>
 
-      {/* ── Petani + Testimoni ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
-        <div className="relative">
-          <img
-            src={FARMER_IMG}
-            alt="Petani Padi"
-            className="w-full h-64 object-cover rounded-3xl shadow-md"
-          />
-          <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl">🌾</div>
-              <div>
-                <p className="text-green-800 font-bold text-sm">Khusus Padi Indonesia</p>
-                <p className="text-gray-500 text-xs">Data standar Kementan & Balitbangtan</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="space-y-3">
-          {testimoni.map((t) => (
-            <div key={t.nama} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <div className="flex gap-0.5 mb-2">
-                {Array.from({ length: t.bintang }).map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
-                ))}
-              </div>
-              <p className="text-gray-600 text-sm italic leading-relaxed mb-3">"{t.pesan}"</p>
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{t.emoji}</span>
-                <div>
-                  <p className="text-gray-800 font-bold text-sm">{t.nama}</p>
-                  <p className="text-gray-400 text-xs flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />{t.lokasi}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+
 
       {/* ── Keunggulan ── */}
       <div className="bg-gradient-to-br from-green-700 to-green-900 rounded-3xl p-7 md:p-10 shadow-lg">
@@ -281,8 +218,8 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7">
           {[
-            { emoji: "✅", judul: "Data Cuaca Otomatis", desc: "Curah hujan & suhu dari BMKG langsung masuk — Anda tidak perlu mengisi apa pun." },
-            { emoji: "📋", judul: "Standar Kementan", desc: "Nilai pupuk dan benih mengacu pada rekomendasi resmi Kementerian Pertanian." },
+            { emoji: "✅", judul: "Data Lokasi Otomatis", desc: "Pilih provinsi saja, data geografis lahan Anda langsung terisi otomatis." },
+            { emoji: "📋", judul: "Prediksi Akurat", desc: "Sistem cerdas yang menganalisis kondisi lahan Anda untuk memberikan prediksi terpercaya." },
             { emoji: "📱", judul: "Mudah di HP", desc: "Dirancang untuk layar ponsel petani — huruf besar, tombol mudah diklik." },
           ].map((k) => (
             <div key={k.judul} className="bg-white/10 rounded-2xl p-5 border border-white/20">
@@ -293,7 +230,7 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
           ))}
         </div>
         <div className="flex flex-wrap gap-3 justify-center">
-          {["✓ Bebas biaya", "✓ Tanpa daftar akun*", "✓ Bahasa Indonesia", "✓ Data BMKG real-time"].map((item) => (
+          {["✓ Bebas biaya", "✓ Tanpa daftar akun*", "✓ Bahasa Indonesia", "✓ Prediksi akurat"].map((item) => (
             <span key={item} className="flex items-center gap-1.5 bg-white/20 text-white text-sm px-4 py-2 rounded-full border border-white/20">
               {item}
             </span>
@@ -313,7 +250,7 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
 
       <div className="text-center text-gray-400 text-sm pb-4">
         <p>© 2026 SiPadiPrediksi · Dikembangkan untuk petani padi Indonesia 🇮🇩</p>
-        <p className="mt-1">Didukung: Kementan RI · BMKG · Balitbangtan</p>
+        <p className="mt-1">Dikembangkan oleh Tim Rekayasa Sistem Informasi</p>
       </div>
     </div>
   );

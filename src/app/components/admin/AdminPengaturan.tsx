@@ -255,7 +255,7 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
           {[
             { icon: Server,   label: "Versi Aplikasi",    val: "SiPadiPrediksi v2.0.1" },
             { icon: Database, label: "Status Database",   val: "🟢 Online · 42 ms" },
-            { icon: Wifi,     label: "Status API BMKG",   val: "🟢 Terhubung" },
+            { icon: Wifi,     label: "Status Model ML",   val: "🟢 Siap digunakan" },
             { icon: Clock,    label: "Server Time",        val: "Senin, 14 Apr 2026 · 14:23 WIB" },
             { icon: Database, label: "Backup Terakhir",    val: "14 Apr 2026 · 00:01 WIB" },
             { icon: Shield,   label: "Sesi Login Admin",  val: "Aktif sejak 13:45 WIB" },
