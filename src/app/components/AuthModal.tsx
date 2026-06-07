@@ -233,17 +233,18 @@ export function AuthModal({ mode, onClose, onLogin, onSwitchMode, isGateMode = f
       }
       
       const data = await res.json();
+      const mappedUser = {
+        namaLengkap: data.user.nama_lengkap,
+        email: data.user.email,
+        provinsi: data.user.provinsi,
+        role: data.user.role
+      };
       localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user_data", JSON.stringify(data.user));
+      localStorage.setItem("user_data", JSON.stringify(mappedUser));
       
       setSuccess(true);
       setTimeout(() => {
-        onLogin({
-          namaLengkap: data.user.nama_lengkap,
-          email: data.user.email,
-          provinsi: data.user.provinsi,
-          role: data.user.role
-        });
+        onLogin(mappedUser);
       }, 2200);
     } catch (error: any) {
       setRegErr({ email: error.message });
@@ -277,15 +278,16 @@ export function AuthModal({ mode, onClose, onLogin, onSwitchMode, isGateMode = f
       }
       
       const data = await res.json();
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user_data", JSON.stringify(data.user));
-      
-      onLogin({
+      const mappedUser = {
         namaLengkap: data.user.nama_lengkap,
         email: data.user.email,
         provinsi: data.user.provinsi,
         role: data.user.role
-      });
+      };
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user_data", JSON.stringify(mappedUser));
+      
+      onLogin(mappedUser);
     } catch (error: any) {
       setLoginErr({ emailOrHP: error.message });
     } finally {

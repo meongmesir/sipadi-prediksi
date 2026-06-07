@@ -39,7 +39,13 @@ export default function App() {
   const [user, setUser] = useState<UserType | null>(() => {
     try {
       const stored = localStorage.getItem("user_data");
-      return stored ? JSON.parse(stored) : null;
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      // Fix corrupted data from previous versions (snake_case to camelCase)
+      if (parsed && !parsed.namaLengkap && parsed.nama_lengkap) {
+        parsed.namaLengkap = parsed.nama_lengkap;
+      }
+      return parsed.namaLengkap ? parsed : null;
     } catch {
       return null;
     }
