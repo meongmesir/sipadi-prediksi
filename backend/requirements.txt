@@ -13,3 +13,4 @@ scikit-learn==1.6.1
 xgboost==3.0.2
 joblib==1.5.1
 email-validator>=2.0.0
+psycopg2-binary>=2.9.9
