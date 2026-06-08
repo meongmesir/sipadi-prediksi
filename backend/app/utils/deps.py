@@ -1,17 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
 from jose import jwt, JWTError
 from app.config import settings
-
-def get_current_user(token: str, db: Session = Depends(get_db)):
-    # Temporary mock implementation, needs real JWT extraction from header
-    # Normally this uses fastapi.security.OAuth2PasswordBearer
-    # Since frontend is just sending "Bearer <token>", we'll extract it manually for now.
-    pass
-
-# We will implement a proper get_current_user dependency here.
 from fastapi.security import OAuth2PasswordBearer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")

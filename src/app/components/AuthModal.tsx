@@ -3,7 +3,7 @@ import {
   X, Eye, EyeOff, CheckCircle2, Loader2,
   User, Lock, Phone, MapPin, Mail, Leaf,
 } from "lucide-react";
-import type { UserType } from "../App";
+import type { UserType } from "../../types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -1,48 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
 } from "recharts";
 import { Download, FileText, Filter, Calendar, TrendingUp, Users, Sprout } from "lucide-react";
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const ringkasanBulanan = [
-  { bulan: "Nov 2025", prediksi: 98,  pengguna: 72,  rataHasil: 4.9, rataHarga: 5520 },
-  { bulan: "Des 2025", prediksi: 134, pengguna: 85,  rataHasil: 5.0, rataHarga: 5680 },
-  { bulan: "Jan 2026", prediksi: 112, pengguna: 91,  rataHasil: 5.1, rataHarga: 5750 },
-  { bulan: "Feb 2026", prediksi: 145, pengguna: 103, rataHasil: 5.2, rataHarga: 5820 },
-  { bulan: "Mar 2026", prediksi: 167, pengguna: 118, rataHasil: 5.2, rataHarga: 5790 },
-  { bulan: "Apr 2026", prediksi: 187, pengguna: 127, rataHasil: 5.3, rataHarga: 5850 },
-];
-
-const distribusiKategori = [
-  { kategori: "Sangat Baik",    jumlah: 312, persen: 37, warna: "#15803d" },
-  { kategori: "Baik",           jumlah: 287, persen: 34, warna: "#3b82f6" },
-  { kategori: "Cukup",          jumlah: 168, persen: 20, warna: "#f59e0b" },
-  { kategori: "Perlu Perhatian",jumlah: 76,  persen: 9,  warna: "#ef4444" },
-];
-
-const tabelProvinsi = [
-  { no: 1,  provinsi: "Jawa Tengah",       prediksi: 214, rata: 5.4, sangat: 89, baik: 78, cukup: 37, perlu: 10 },
-  { no: 2,  provinsi: "Jawa Timur",        prediksi: 178, rata: 5.1, sangat: 64, baik: 67, cukup: 35, perlu: 12 },
-  { no: 3,  provinsi: "Jawa Barat",        prediksi: 153, rata: 5.2, sangat: 59, baik: 55, cukup: 30, perlu: 9 },
-  { no: 4,  provinsi: "Sulawesi Selatan",  prediksi: 87,  rata: 5.0, sangat: 28, baik: 32, cukup: 20, perlu: 7 },
-  { no: 5,  provinsi: "Sumatera Utara",    prediksi: 64,  rata: 4.8, sangat: 18, baik: 24, cukup: 15, perlu: 7 },
-  { no: 6,  provinsi: "DI Yogyakarta",     prediksi: 47,  rata: 5.1, sangat: 17, baik: 18, cukup: 9,  perlu: 3 },
-  { no: 7,  provinsi: "NTB",               prediksi: 38,  rata: 5.0, sangat: 12, baik: 15, cukup: 8,  perlu: 3 },
-  { no: 8,  provinsi: "Bali",              prediksi: 29,  rata: 5.3, sangat: 11, baik: 12, cukup: 5,  perlu: 1 },
-];
-
-const BULAN_LIST = ["Apr 2026", "Mar 2026", "Feb 2026", "Jan 2026", "Des 2025", "Nov 2025"];
+import { fetchWithAuth } from "../../../services/api";
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+interface RingkasanItem { bulan: string; prediksi: number; pengguna: number; rataHasil: number; rataHarga: number; }
+interface DistribusiItem { kategori: string; jumlah: number; persen: number; warna: string; }
+interface TabelItem { no: number; provinsi: string; prediksi: number; rata: number; sangat: number; baik: number; cukup: number; perlu: number; }
+
 export function AdminLaporan() {
-  const [bulan, setBulan] = useState("Apr 2026");
+  const [ringkasanBulanan, setRingkasanBulanan] = useState<RingkasanItem[]>([]);
+  const [distribusiKategori, setDistribusiKategori] = useState<DistribusiItem[]>([]);
+  const [tabelProvinsi, setTabelProvinsi] = useState<TabelItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [bulan, setBulan] = useState("");
   const [jenis, setJenis] = useState("ringkasan");
 
+  useEffect(() => {
+    fetchWithAuth('/admin/reports/summary')
+      .then((data: any) => {
+        setRingkasanBulanan(data.ringkasan || []);
+        setDistribusiKategori(data.distribusiKategori || []);
+        setTabelProvinsi(data.tabelProvinsi || []);
+        if (data.ringkasan?.length > 0) {
+          setBulan(data.ringkasan[data.ringkasan.length - 1].bulan);
+        }
+      })
+      .catch((err) => console.error("Gagal memuat laporan:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const bulanData = ringkasanBulanan.find((r) => r.bulan === bulan) ?? ringkasanBulanan[ringkasanBulanan.length - 1];
+
+  if (loading) {
+    return <div className="p-8 text-center text-gray-500">Memuat laporan...</div>;
+  }
 
   return (
     <div className="space-y-5">
@@ -74,7 +70,7 @@ export function AdminLaporan() {
             onChange={(e) => setBulan(e.target.value)}
             className="border-2 border-gray-200 focus:border-green-500 rounded-xl px-4 py-2.5 text-sm text-gray-700 appearance-none outline-none bg-white pr-8"
           >
-            {BULAN_LIST.map((b) => <option key={b}>{b}</option>)}
+            {[...ringkasanBulanan].reverse().map((r) => <option key={r.bulan}>{r.bulan}</option>)}
           </select>
         </div>
         <div className="flex rounded-xl overflow-hidden border-2 border-gray-200">

@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Any
 
@@ -19,10 +20,15 @@ class UserResponse(BaseModel):
     no_hp: Optional[str]
     provinsi: str
     role: str
-    preferences: dict[str, Any]
+    preferences: Optional[dict[str, Any]] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+
+class AdminUserResponse(UserResponse):
+    jumlah_prediksi: int = 0
 
 class Token(BaseModel):
     access_token: str

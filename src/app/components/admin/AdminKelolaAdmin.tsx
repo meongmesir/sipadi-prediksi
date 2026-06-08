@@ -157,12 +157,21 @@ function TambahAdminModal({
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => {
-      onSimpan(nama.trim(), email.trim().toLowerCase());
-    }, 1500);
+    try {
+      await fetchWithAuth('/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nama_lengkap: nama.trim(), email: email.trim().toLowerCase(), password, provinsi: "Indonesia" }),
+      });
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => {
+        onSimpan(nama.trim(), email.trim().toLowerCase());
+      }, 1500);
+    } catch (err) {
+      setLoading(false);
+      setErrors({ email: "Gagal menyimpan. Email mungkin sudah terdaftar." });
+    }
   };
 
   const inputCls = (hasErr?: string) =>
@@ -314,6 +323,7 @@ export function AdminKelolaAdmin() {
   const [selected, setSelected] = useState<AdminData | null>(null);
   const [showTambah, setShowTambah] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     fetchWithAuth('/admin/users')
@@ -331,7 +341,7 @@ export function AdminKelolaAdmin() {
       })
       .catch((err) => console.error("Gagal mengambil data user:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [refreshKey]);
 
   // Filter
   const filtered = admins.filter((a) => {
@@ -357,18 +367,9 @@ export function AdminKelolaAdmin() {
     );
   };
 
-  const handleTambahAdmin = (nama: string, email: string) => {
-    const newAdmin: AdminData = {
-      id: admins.length + 1,
-      nama,
-      email,
-      tglDibuat: "14 Apr 2026",
-      loginTerakhir: "Belum pernah login",
-      jumlahAksi: 0,
-      status: "Aktif",
-    };
-    setAdmins((prev) => [newAdmin, ...prev]);
+  const handleTambahAdmin = () => {
     setShowTambah(false);
+    setRefreshKey((k) => k + 1);
   };
 
   return (

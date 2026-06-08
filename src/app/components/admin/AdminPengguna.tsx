@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search, Filter, ChevronLeft, ChevronRight,
   Eye, UserCheck, UserX, X, Mail, Phone, MapPin, BarChart3,
 } from "lucide-react";
+import { fetchWithAuth } from "../../../services/api";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Pengguna {
   id: number;
@@ -16,24 +17,6 @@ interface Pengguna {
   jumlahPrediksi: number;
   status: "Aktif" | "Nonaktif" | "Menunggu";
 }
-
-const MOCK_PENGGUNA: Pengguna[] = [
-  { id: 1,  nama: "Budi Santoso",       email: "budi.santoso@gmail.com",    hp: "08123456789", provinsi: "Jawa Tengah",       tglDaftar: "10 Jan 2026", jumlahPrediksi: 15, status: "Aktif" },
-  { id: 2,  nama: "Siti Rahayu",        email: "siti.rahayu@yahoo.com",     hp: "08234567890", provinsi: "Jawa Barat",        tglDaftar: "15 Jan 2026", jumlahPrediksi: 8,  status: "Aktif" },
-  { id: 3,  nama: "Ahmad Dahlan",       email: "ahmad.dahlan@gmail.com",    hp: "08345678901", provinsi: "Sulawesi Selatan",  tglDaftar: "20 Jan 2026", jumlahPrediksi: 12, status: "Aktif" },
-  { id: 4,  nama: "Dewi Sartika",       email: "dewi.sartika@outlook.com",  hp: "08456789012", provinsi: "Jawa Timur",        tglDaftar: "25 Jan 2026", jumlahPrediksi: 5,  status: "Aktif" },
-  { id: 5,  nama: "Rudi Hartono",       email: "rudi.h@gmail.com",          hp: "08567890123", provinsi: "Sumatera Utara",    tglDaftar: "1 Feb 2026",  jumlahPrediksi: 3,  status: "Aktif" },
-  { id: 6,  nama: "Fatimah Zahra",      email: "fatimah.z@gmail.com",       hp: "08678901234", provinsi: "NTB",               tglDaftar: "5 Feb 2026",  jumlahPrediksi: 7,  status: "Aktif" },
-  { id: 7,  nama: "Hasan Basri",        email: "hasan.basri@gmail.com",     hp: "08789012345", provinsi: "Kalimantan Selatan",tglDaftar: "8 Feb 2026",  jumlahPrediksi: 2,  status: "Nonaktif" },
-  { id: 8,  nama: "Maria Goreti",       email: "maria.goreti@gmail.com",    hp: "08890123456", provinsi: "NTT",               tglDaftar: "12 Feb 2026", jumlahPrediksi: 9,  status: "Aktif" },
-  { id: 9,  nama: "Sukardi",            email: "sukardi@gmail.com",         hp: "08901234567", provinsi: "DI Yogyakarta",     tglDaftar: "18 Feb 2026", jumlahPrediksi: 11, status: "Aktif" },
-  { id: 10, nama: "Yusuf Maulana",      email: "yusuf.m@gmail.com",         hp: "08012345678", provinsi: "Aceh",              tglDaftar: "22 Feb 2026", jumlahPrediksi: 4,  status: "Aktif" },
-  { id: 11, nama: "Ratna Dewi",         email: "ratna.d@gmail.com",         hp: "08123456780", provinsi: "Jawa Tengah",       tglDaftar: "1 Mar 2026",  jumlahPrediksi: 6,  status: "Aktif" },
-  { id: 12, nama: "Agus Setiawan",      email: "agus.s@gmail.com",          hp: "08234567801", provinsi: "Jawa Barat",        tglDaftar: "5 Mar 2026",  jumlahPrediksi: 0,  status: "Menunggu" },
-  { id: 13, nama: "Sri Wahyuni",        email: "sri.w@gmail.com",           hp: "08345678902", provinsi: "Jawa Timur",        tglDaftar: "8 Mar 2026",  jumlahPrediksi: 0,  status: "Menunggu" },
-  { id: 14, nama: "Bambang Suryadi",    email: "bambang.s@gmail.com",       hp: "08456789023", provinsi: "Sulawesi Selatan",  tglDaftar: "10 Mar 2026", jumlahPrediksi: 0,  status: "Menunggu" },
-  { id: 15, nama: "Ningrum Wati",       email: "ningrum.w@gmail.com",       hp: "08567890134", provinsi: "Bali",              tglDaftar: "12 Mar 2026", jumlahPrediksi: 3,  status: "Aktif" },
-];
 
 const statusCfg = {
   Aktif:     { color: "bg-green-100 text-green-700 border-green-200",  dot: "bg-green-500" },
@@ -132,14 +115,35 @@ function DetailModal({ p, onClose }: { p: Pengguna; onClose: () => void }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AdminPengguna() {
+  const [pengguna, setPengguna] = useState<Pengguna[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [provinsiFilter, setProvinsiFilter] = useState("Semua Provinsi");
   const [statusFilter, setStatusFilter] = useState("Semua");
   const [currentPage, setCurrentPage] = useState(1);
   const [selected, setSelected] = useState<Pengguna | null>(null);
 
+  useEffect(() => {
+    fetchWithAuth('/admin/users')
+      .then((data: any[]) => {
+        const mapped: Pengguna[] = data.map((u: any) => ({
+          id: u.id,
+          nama: u.nama_lengkap,
+          email: u.email,
+          hp: u.no_hp || "-",
+          provinsi: u.provinsi,
+          tglDaftar: u.created_at ? new Date(u.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-",
+          jumlahPrediksi: u.jumlah_prediksi ?? 0,
+          status: "Aktif",
+        }));
+        setPengguna(mapped);
+      })
+      .catch((err) => console.error("Gagal memuat pengguna:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
   // Filter
-  const filtered = MOCK_PENGGUNA.filter((p) => {
+  const filtered = pengguna.filter((p) => {
     const matchSearch = p.nama.toLowerCase().includes(search.toLowerCase()) ||
       p.email.toLowerCase().includes(search.toLowerCase());
     const matchProv = provinsiFilter === "Semua Provinsi" || p.provinsi === provinsiFilter;
@@ -150,8 +154,12 @@ export function AdminPengguna() {
   const totalPage = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
-  const totalAktif    = MOCK_PENGGUNA.filter((p) => p.status === "Aktif").length;
-  const totalMenunggu = MOCK_PENGGUNA.filter((p) => p.status === "Menunggu").length;
+  const totalAktif    = pengguna.filter((p) => p.status === "Aktif").length;
+  const totalMenunggu = pengguna.filter((p) => p.status === "Menunggu").length;
+
+  if (loading) {
+    return <div className="p-8 text-center text-gray-500">Memuat data pengguna...</div>;
+  }
 
   return (
     <div className="space-y-5">
@@ -160,7 +168,7 @@ export function AdminPengguna() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-gray-900 font-bold text-2xl">Data Pengguna</h1>
-          <p className="text-gray-500 text-sm">{MOCK_PENGGUNA.length} total pengguna terdaftar</p>
+          <p className="text-gray-500 text-sm">{pengguna.length} total pengguna terdaftar</p>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <span className="bg-green-100 text-green-700 font-bold px-3 py-1.5 rounded-xl">{totalAktif} Aktif</span>

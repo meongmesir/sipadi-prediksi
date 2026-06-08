@@ -1,10 +1,14 @@
 import os
 import math
+import warnings
 from app.config import settings
 
 try:
     import joblib
     import pandas as pd
+    from sklearn.exceptions import InconsistentVersionWarning
+    warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+    warnings.filterwarnings("ignore", message=".*serialized model.*older version.*")
     HAS_ML_DEPS = True
 except ImportError:
     HAS_ML_DEPS = False

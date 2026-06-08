@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -12,7 +12,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     provinsi = Column(String(50), nullable=False)
     role = Column(String(20), server_default='petani')
-    is_active = Column(Boolean, server_default=text('1')) # sqlite bool
-    preferences = Column(JSON, server_default=text("'{}'"))
+    is_active = Column(Boolean, server_default='true')
+    preferences = Column(JSON, server_default='{}')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)

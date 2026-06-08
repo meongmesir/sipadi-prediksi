@@ -1,17 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Leaf, LayoutDashboard, Users, BarChart3, DollarSign,
-  FileText, Settings, LogOut, Menu, X, ChevronDown,
+  FileText, LogOut, Menu, X, ChevronDown,
   Shield, UserCog, Crown,
 } from "lucide-react";
-import type { UserType } from "../../App";
+import type { UserType } from "../../../types";
 import { AdminDasbor } from "./AdminDasbor";
 import { AdminPengguna } from "./AdminPengguna";
 import { AdminKelolaAdmin } from "./AdminKelolaAdmin";
 import { AdminPrediksi } from "./AdminPrediksi";
 import { AdminHarga } from "./AdminHarga";
 import { AdminLaporan } from "./AdminLaporan";
-import { AdminPengaturan } from "./AdminPengaturan";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type AdminPage =
@@ -20,8 +19,7 @@ export type AdminPage =
   | "kelola-admin"
   | "prediksi"
   | "harga"
-  | "laporan"
-  | "pengaturan";
+  | "laporan";
 
 interface NavItem {
   page: AdminPage;
@@ -53,7 +51,7 @@ const superAdminNavItems: NavItem[] = [
   { page: "prediksi",     label: "Data Prediksi",   icon: BarChart3,  dividerBefore: true },
   { page: "harga",        label: "Harga Komoditas", icon: DollarSign },
   { page: "laporan",      label: "Laporan",         icon: FileText },
-  { page: "pengaturan",   label: "Pengaturan",      icon: Settings,   dividerBefore: true },
+
 ];
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
@@ -189,17 +187,7 @@ export function AdminApp({ user, onLogout, role }: Props) {
                       </div>
                     </div>
                   </div>
-                  <div className="py-1">
-                    {isSuperAdmin && (
-                      <button
-                        onClick={() => { navigate("pengaturan"); setUserMenuOpen(false); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700 text-sm transition-colors"
-                      >
-                        <Settings className="w-4 h-4 text-gray-400" />
-                        Pengaturan Sistem
-                      </button>
-                    )}
-                  </div>
+
                   <div className="border-t border-gray-100 py-1">
                     <button
                       onClick={onLogout}
@@ -305,7 +293,7 @@ export function AdminApp({ user, onLogout, role }: Props) {
             {page === "prediksi"     && <AdminPrediksi />}
             {page === "harga"        && <AdminHarga />}
             {page === "laporan"      && <AdminLaporan />}
-            {page === "pengaturan"   && isSuperAdmin && <AdminPengaturan adminName={user.namaLengkap} adminEmail={user.email} />}
+
           </div>
         </main>
       </div>

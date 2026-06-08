@@ -43,6 +43,8 @@ backend/.env
 backend/*.db
 backend/*.sqlite3
 
+__pycache__/
+*.pyc
 # Models (optional - if you don't want to upload 6MB model, you can uncomment below)
 # backend/ml_models/*.joblib
 # backend/ml_models/*.pkl
