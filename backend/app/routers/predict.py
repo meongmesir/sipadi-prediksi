@@ -41,20 +41,53 @@ def create_prediction(req: PredictionRequest, db: Session = Depends(get_db), cur
     else:
         kategori = "Perlu Perhatian"
         
-    # Generate Catatan Risiko & Rekomendasi (Mock for now, should be extracted to a rule engine)
+    # Generate Catatan Risiko (Perhatian Khusus)
     catatan_risiko = []
+    if yield_kg_ha < 2000:
+        catatan_risiko.append("Potensi panen sangat rendah. Lahan berada dalam risiko gagal panen atau pertumbuhan terhambat.")
+    
     if req.water_code == "N":
-        catatan_risiko.append("Lahan tadah hujan sangat bergantung pada curah hujan")
+        catatan_risiko.append("Sistem tadah hujan membuat tanaman rentan terhadap kekeringan jika terjadi kemarau panjang (El Niño).")
+        
     if req.n_total_kg_ha == 0:
-        catatan_risiko.append("Tanpa pupuk nitrogen, hasil panen akan sangat rendah")
+        catatan_risiko.append("Tidak ada asupan pupuk Nitrogen. Tanaman akan kerdil dan bulir padi tidak akan berisi penuh.")
+    elif req.n_total_kg_ha > 150 and yield_kg_ha < 4000:
+        catatan_risiko.append("Dosis pupuk sangat tinggi (>150 kg/ha) namun proyeksi panen rendah. Ada risiko pencucian pupuk atau tanah jenuh (pemborosan biaya).")
         
+    if req.plant_pop < 50:
+        catatan_risiko.append("Kepadatan tanam terlalu renggang, potensi lahan tidak dimanfaatkan secara maksimal.")
+    elif req.plant_pop > 150:
+        catatan_risiko.append("Kepadatan tanam sangat tinggi (>150 m²). Kelembapan antar tanaman akan meningkat sehingga rawan serangan hama dan jamur.")
+
     if not catatan_risiko:
-        catatan_risiko.append("Tidak ada risiko signifikan yang terdeteksi")
+        catatan_risiko.append("Tidak ada risiko ekstrem yang terdeteksi. Kondisi lahan cukup ideal.")
+
+    # Generate Rekomendasi (Langkah yang Disarankan)
+    rekomendasi = []
+    
+    # Rekomendasi Pemupukan
+    if req.n_total_kg_ha < 50 and yield_kg_ha < 4000:
+        rekomendasi.append("Tingkatkan dosis pupuk Urea atau NPK secara bertahap untuk mendongkrak nutrisi vegetatif tanaman.")
+    elif req.n_total_kg_ha > 0:
+        rekomendasi.append(f"Pecah pemberian pupuk Nitrogen {req.n_total_kg_ha} kg/ha menjadi 3 tahap: pupuk dasar, susulan pertama (14 HST), dan susulan kedua (30 HST).")
         
-    rekomendasi = [
-        f"Gunakan benih {req.cultivar_name} bersertifikat",
-        f"Pupuk nitrogen total {req.n_total_kg_ha} kg/ha diberikan bertahap"
-    ]
+    # Rekomendasi Air & Tanam
+    if req.water_code == "N" and 120 <= req.sowing_doy <= 250:
+        rekomendasi.append("Waktu tanam Anda berisiko masuk ke musim kemarau. Siapkan alternatif sumber air seperti sumur bor atau pompa air.")
+    
+    if req.plant_pop > 150:
+        rekomendasi.append("Gunakan sistem tanam Jajar Legowo untuk memperbaiki sirkulasi udara dan mengurangi risiko hama pada lahan padat.")
+    elif req.plant_pop < 50:
+        rekomendasi.append("Pertimbangkan untuk merapatkan jarak tanam pada siklus berikutnya agar hasil panen per hektar bisa berlipat.")
+        
+    # Rekomendasi Varietas
+    if req.cultivar_name == "IR_36":
+        rekomendasi.append("Varietas IR 36 cukup tangguh terhadap wereng, namun tetap lakukan penyemprotan preventif nabati secara berkala.")
+    else:
+        rekomendasi.append(f"Gunakan benih bersertifikat murni untuk varietas {req.cultivar_name} agar hasil panen tidak menyimpang dari prediksi.")
+    
+    # Ensure max 4 recommendations
+    rekomendasi = rekomendasi[:4]
     
     new_prediction = Prediction(
         user_id=current_user.id,

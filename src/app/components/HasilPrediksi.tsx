@@ -37,7 +37,7 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold ${cfg.bg} ${cfg.color} mb-3`}>
                 {cfg.emoji} Hasil Prediksi: {hasil.kategori}
               </div>
-              <h2 className="text-gray-800 font-bold text-xl mb-1">
+              <h2 className="text-gray-800 font-bold text-xl mb-1 break-words line-clamp-2">
                 {hasil.data.namaLahan || `Lahan ${cultivarLabel}`}
               </h2>
               <p className="text-gray-500 text-base">
@@ -78,7 +78,7 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
           {/* Yield per hektar (kg/ha) — output utama model */}
           <div className="bg-green-50 rounded-2xl p-5 border-2 border-green-200 text-center col-span-1">
-            <p className="text-green-600 text-sm font-medium mb-1">Yield per Hektar</p>
+            <p className="text-green-600 text-sm font-medium mb-1">Perkiraan Hasil Panen (per Hektar)</p>
             <p className="text-green-800 font-bold text-4xl">{hasil.yieldKgHa.toLocaleString("id-ID")}</p>
             <p className="text-green-600 text-lg font-semibold">kg/ha</p>
             <p className="text-gray-400 text-xs mt-1">= {hasil.yieldTonHa} ton/ha</p>
@@ -86,7 +86,7 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
 
           {/* Total produksi */}
           <div className="bg-emerald-50 rounded-2xl p-5 border-2 border-emerald-200 text-center">
-            <p className="text-emerald-600 text-sm font-medium mb-1">Total Produksi</p>
+            <p className="text-emerald-600 text-sm font-medium mb-1">Total Panen di Lahan Anda</p>
             <p className="text-emerald-800 font-bold text-4xl">{hasil.totalProduksiKg.toLocaleString("id-ID")}</p>
             <p className="text-emerald-600 text-lg font-semibold">kg</p>
             <p className="text-gray-400 text-xs mt-1">dari {luasHa.toLocaleString("id-ID")} Ha</p>
@@ -94,7 +94,7 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
 
           {/* vs rata-rata nasional */}
           <div className={`rounded-2xl p-5 border-2 text-center ${hasil.selisihPersen >= 0 ? "bg-blue-50 border-blue-200" : "bg-orange-50 border-orange-200"}`}>
-            <p className={`text-sm font-medium mb-1 ${hasil.selisihPersen >= 0 ? "text-blue-600" : "text-orange-600"}`}>vs Rata-rata Nasional</p>
+            <p className={`text-sm font-medium mb-1 ${hasil.selisihPersen >= 0 ? "text-blue-600" : "text-orange-600"}`}>Perbandingan Rata-rata Nasional</p>
             <div className={`flex items-center justify-center gap-1 ${hasil.selisihPersen >= 0 ? "text-blue-800" : "text-orange-700"}`}>
               {hasil.selisihPersen >= 0
                 ? <TrendingUp className="w-6 h-6" />
@@ -112,8 +112,8 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
         <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3.5 border border-blue-100">
           <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-blue-700 leading-relaxed">
-            Prediksi dihasilkan oleh <strong>sistem kecerdasan buatan</strong> yang dibangun dari data simulasi pertanian.
-            Yield dalam satuan <strong>kg/ha</strong> (kilogram per hektar).
+            Perkiraan ini dihitung secara otomatis oleh sistem kami berdasarkan data kondisi lahan Anda dan dicocokkan dengan pola pertanian nasional.
+            Hasil ditampilkan dalam satuan <strong>kg/ha</strong> (kilogram per hektar).
           </p>
         </div>
       </div>
@@ -122,14 +122,14 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center text-xl">💡</div>
-          <h3 className="text-gray-800 font-bold text-lg">Rekomendasi & Catatan Risiko</h3>
+          <h3 className="text-gray-800 font-bold text-lg">Saran & Hal yang Perlu Diwaspadai</h3>
         </div>
 
         {/* Catatan Risiko */}
         <div className="mb-4">
           <p className="text-gray-700 font-bold text-base mb-2.5 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-orange-500" />
-            Catatan Risiko
+            Perhatian Khusus
           </p>
           <div className="space-y-2">
             {hasil.catatanRisiko.map((r, i) => (
@@ -152,7 +152,7 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
         <div>
           <p className="text-gray-700 font-bold text-base mb-2.5 flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-green-600" />
-            Saran Tindakan
+            Langkah yang Disarankan
           </p>
           <div className="space-y-2">
             {hasil.rekomendasi.map((r, i) => (
@@ -169,7 +169,7 @@ export function HasilPrediksi({ hasil, onUlang, onBeranda }: Props) {
 
       {/* ══ Ringkasan Parameter Input ══ */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-gray-800 font-bold text-base mb-4">📋 Ringkasan Data yang Anda Masukkan</h3>
+        <h3 className="text-gray-800 font-bold text-base mb-4">📋 Ringkasan Data Lahan Anda</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {[
             { label: "Provinsi", value: hasil.data.provinsi },
