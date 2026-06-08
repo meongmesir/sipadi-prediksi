@@ -437,6 +437,10 @@ export default function App() {
         {page === "riwayat" && (
           <RiwayatPrediksi
             onPrediksi={() => navigateTo("form")}
+            onViewDetail={(hasil) => {
+              setHasilAktif(hasil);
+              navigateTo("hasil");
+            }}
           />
         )}
       </main>

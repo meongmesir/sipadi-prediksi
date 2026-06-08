@@ -23,9 +23,10 @@ interface PrediksiDB {
 
 interface Props {
   onPrediksi: () => void;
+  onViewDetail?: (hasil: any) => void;
 }
 
-export function RiwayatPrediksi({ onPrediksi }: Props) {
+export function RiwayatPrediksi({ onPrediksi, onViewDetail }: Props) {
   const [items, setItems] = useState<PrediksiDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,6 +181,41 @@ export function RiwayatPrediksi({ onPrediksi }: Props) {
                         <p className="text-xs text-gray-500">💡 {h.rekomendasi[0]}</p>
                       </div>
                     )}
+                    {/* Actions */}
+                    <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+                      <button
+                        onClick={() => {
+                          if (onViewDetail) {
+                            const hasilTypeMapped = {
+                              data: {
+                                namaLahan: `Lahan ${cultivarLabel} (${tglFormatted})`,
+                                provinsi: h.provinsi,
+                                luasLahan: String(h.luas_lahan_ha),
+                                cultivarName: h.cultivar_name,
+                                sowingDoy: h.sowing_doy,
+                                nTotalKgHa: h.n_total_kg_ha,
+                                plantPop: h.plant_pop,
+                                waterCode: h.water_code,
+                              },
+                              yieldKgHa: h.yield_kg_ha,
+                              yieldTonHa: h.yield_kg_ha / 1000,
+                              totalProduksiKg: totalKg,
+                              rataRataNasionalKgHa: 4207,
+                              selisihPersen: selisihPersen,
+                              kategori: h.kategori,
+                              persentasePotensi: Math.min(100, Math.round((h.yield_kg_ha / 13083) * 100)),
+                              catatanRisiko: h.catatan_risiko,
+                              rekomendasi: h.rekomendasi,
+                            };
+                            onViewDetail(hasilTypeMapped);
+                          }
+                        }}
+                        className="flex items-center gap-1.5 text-green-700 hover:text-green-800 text-sm font-semibold bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Lihat Detail
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
