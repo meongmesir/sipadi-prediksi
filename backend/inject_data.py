@@ -14,8 +14,8 @@ NAMES = [
     "Eko Prasetyo", "Fajar Nugroho", "Gatot Subroto", "Hadi Saputra",
     "Iwan Setiawan", "Joko Widodo"
 ]
-CULTIVARS = ["IR_36", "IR_64", "Ciherang", "Inpari_32", "Membramo", "Sintanur"]
-WATER_CODES = ["I", "N"]  # I = Irigasi, N = Tadah Hujan
+CULTIVARS = ["IR_36", "IR_64", "IR_72"]
+WATER_CODES = ["A", "N"]  # A = Irigasi, N = Tadah Hujan
 
 def random_date(start, end):
     return start + timedelta(
@@ -63,10 +63,10 @@ def generate_predictions(db, num_predictions=150):
         user = random.choice(users)
         geo = random.choice(provinsis)
         
-        # Random inputs
-        sowing_doy = random.randint(1, 365)
-        n_total = random.uniform(0, 200)
-        plant_pop = random.uniform(50, 150)
+        # Random inputs matching frontend constants exactly
+        sowing_doy = random.choice([121, 135, 154, 170, 187, 202, 219])
+        n_total = float(random.choice(range(0, 225, 25)))
+        plant_pop = float(random.choice([15, 20, 25, 30, 35, 40]))
         cultivar = random.choice(CULTIVARS)
         water = random.choice(WATER_CODES)
         luas = random.uniform(0.5, 5.0)
@@ -146,6 +146,11 @@ def generate_predictions(db, num_predictions=150):
 if __name__ == "__main__":
     db = SessionLocal()
     try:
+        # Delete old predictions to clean up
+        print("Membersihkan data prediksi lama...")
+        db.query(Prediction).delete()
+        db.commit()
+        
         seed_farmers(db)
         generate_predictions(db, 150)
     finally:
