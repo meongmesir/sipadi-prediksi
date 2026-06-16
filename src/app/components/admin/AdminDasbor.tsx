@@ -17,13 +17,16 @@ interface DasborStats {
   total_users: number;
   total_predictions: number;
   avg_yield: number;
+  best_yield: number;
+  total_admin: number;
+  admin_list: { nama: string; email: string; role: string; loginTerakhir: string }[];
   top_provinsi: any[];
   distribusi_varietas: any[];
   prediksi_per_bulan: any[];
   aktivitas_terbaru: any[];
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const kategoriCfg = {
   "Sangat Baik":    { color: "bg-green-100 text-green-700",  dot: "bg-green-500" },
@@ -32,11 +35,9 @@ const kategoriCfg = {
   "Perlu Perhatian":{ color: "bg-red-100 text-red-700",      dot: "bg-red-500" },
 };
 
-const adminAktif = [
-  { nama: "Budi Wijaya",    email: "budi.admin@sipadi.id",   loginTerakhir: "Hari ini · 09:30", status: "Online",  aksi: 14 },
-  { nama: "Dewi Kusuma",    email: "dewi.admin@sipadi.id",   loginTerakhir: "Kemarin · 14:22",  status: "Offline", aksi: 8  },
-  { nama: "Hendra Gunawan", email: "hendra.admin@sipadi.id", loginTerakhir: "3 hari lalu",      status: "Offline", aksi: 21 },
-];
+function getTodayLabel() {
+  return new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ export function AdminDasbor({ onNavigate, role }: { onNavigate: (page: AdminPage
           <h1 className="text-gray-900 font-bold text-2xl">
             {isSuperAdmin ? "Dasbor Super Admin" : "Dasbor Admin"}
           </h1>
-          <p className="text-gray-500 text-sm mt-0.5">Selasa, 14 April 2026 · Ringkasan sistem SiPadiPrediksi</p>
+          <p className="text-gray-500 text-sm mt-0.5">{getTodayLabel()} · Ringkasan sistem SiPadiPrediksi</p>
         </div>
         <div className="hidden sm:flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -145,37 +146,30 @@ export function AdminDasbor({ onNavigate, role }: { onNavigate: (page: AdminPage
         <KpiCard
           label="Total Pengguna"
           nilai={stats.total_users.toString()}
-          sub="dari bulan lalu"
+          sub="total petani terdaftar"
           icon={Users}
           iconBg="bg-green-700"
-          naik
-          delta="+12"
         />
         <KpiCard
           label="Total Prediksi"
           nilai={stats.total_predictions.toString()}
-          sub="dari bulan lalu"
+          sub="seluruh prediksi masuk"
           icon={BarChart3}
           iconBg="bg-blue-600"
-          naik
-          delta="+11.2%"
         />
         <KpiCard
           label="Rata-rata Hasil Panen"
-          nilai={`${stats.avg_yield.toLocaleString("id-ID")} kg/ha`}
-          sub="musim tanam ini"
+          nilai={stats.avg_yield > 0 ? `${stats.avg_yield.toLocaleString("id-ID")} kg/ha` : "Belum ada data"}
+          sub="rata-rata seluruh prediksi"
           icon={Sprout}
           iconBg="bg-teal-600"
-          naik
-          delta="+613"
         />
         <KpiCard
           label="Prediksi Terbaik"
-          nilai="11.240 kg/ha"
-          sub="hasil tertinggi bulan ini"
+          nilai={stats.best_yield > 0 ? `${stats.best_yield.toLocaleString("id-ID")} kg/ha` : "Belum ada data"}
+          sub="hasil tertinggi yang pernah dicapai"
           icon={TrendingUp}
           iconBg="bg-amber-500"
-          naik
         />
       </div>
 
@@ -200,11 +194,10 @@ export function AdminDasbor({ onNavigate, role }: { onNavigate: (page: AdminPage
             </button>
           </div>
           <div className="p-5">
-            <div className="grid grid-cols-3 gap-4 mb-5">
+            <div className="grid grid-cols-2 gap-4 mb-5">
               {[
-                { label: "Total Admin", nilai: "4", icon: "🛡️", color: "bg-violet-50 text-violet-700" },
-                { label: "Admin Aktif",  nilai: "3", icon: "🟢", color: "bg-green-50 text-green-700"  },
-                { label: "Aksi Hari Ini", nilai: "23", icon: "⚡", color: "bg-amber-50 text-amber-700" },
+                { label: "Total Admin", nilai: stats.total_admin.toString(), icon: "🛡️", color: "bg-violet-50 text-violet-700" },
+                { label: "Terdaftar",   nilai: `${stats.total_admin} akun`, icon: "✅", color: "bg-green-50 text-green-700" },
               ].map((s) => (
                 <div key={s.label} className={`rounded-xl p-3.5 text-center ${s.color}`}>
                   <p className="text-xl mb-1">{s.icon}</p>
@@ -214,28 +207,26 @@ export function AdminDasbor({ onNavigate, role }: { onNavigate: (page: AdminPage
               ))}
             </div>
             <div className="space-y-3">
-              {adminAktif.map((a) => (
-                <div key={a.email} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <div className="w-9 h-9 bg-violet-700 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {a.nama.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-gray-800 text-sm font-semibold truncate">{a.nama}</p>
-                    <p className="text-gray-400 text-xs truncate">{a.loginTerakhir}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-500 text-xs">{a.aksi} aksi</span>
-                    <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      a.status === "Online"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-500"
+              {stats.admin_list.length === 0 ? (
+                <p className="text-gray-400 text-sm text-center py-4">Tidak ada admin terdaftar</p>
+              ) : (
+                stats.admin_list.map((a) => (
+                  <div key={a.email} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                    <div className="w-9 h-9 bg-violet-700 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {a.nama.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-800 text-sm font-semibold truncate">{a.nama}</p>
+                      <p className="text-gray-400 text-xs truncate">{a.loginTerakhir}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      a.role === "superadmin" ? "bg-violet-100 text-violet-700" : "bg-amber-100 text-amber-700"
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${a.status === "Online" ? "bg-green-500" : "bg-gray-400"}`} />
-                      {a.status}
+                      {a.role === "superadmin" ? "Super Admin" : "Admin"}
                     </span>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -393,25 +384,20 @@ export function AdminDasbor({ onNavigate, role }: { onNavigate: (page: AdminPage
         </div>
       </div>
 
-      {/* ── Alert Banner ── */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-        <div className="w-8 h-8 bg-amber-400 rounded-xl flex items-center justify-center flex-shrink-0">
-          <AlertTriangle className="w-4 h-4 text-white" />
+      {/* ── Info Banner — hanya tampil jika ada data nyata ── */}
+      {stats.total_predictions === 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+          <div className="w-8 h-8 bg-blue-400 rounded-xl flex items-center justify-center flex-shrink-0">
+            <AlertTriangle className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-blue-800 font-semibold text-sm">Belum Ada Data Prediksi</p>
+            <p className="text-blue-600 text-sm mt-0.5">
+              Database masih kosong. Statistik akan muncul secara otomatis setelah pengguna mulai melakukan prediksi.
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-amber-800 font-semibold text-sm">3 Pengguna Baru Menunggu Verifikasi</p>
-          <p className="text-amber-600 text-sm mt-0.5">
-            Ada 3 pendaftaran akun baru yang perlu ditinjau.{" "}
-            {isSuperAdmin ? (
-              <button onClick={() => onNavigate("pengguna")} className="font-bold underline">
-                Tinjau sekarang →
-              </button>
-            ) : (
-              <span>Hubungi Super Admin untuk meninjau.</span>
-            )}
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

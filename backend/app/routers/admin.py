@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Any
+from datetime import datetime, timedelta
+import collections
+
 from app.database import get_db
 from app.models.user import User
 from app.models.prediction import Prediction
@@ -18,7 +21,6 @@ def get_dashboard_stats(db: Session = Depends(get_db), admin: User = Depends(req
     avg_yield_val = db.query(func.avg(Prediction.yield_kg_ha)).scalar()
     avg_yield = round(avg_yield_val, 1) if avg_yield_val else 0
 
-    # Top Provinsi (berdasarkan prediksi terbanyak)
     top_prov = db.query(
         Prediction.provinsi,
         func.count(Prediction.id).label('prediksi')
@@ -32,10 +34,9 @@ def get_dashboard_stats(db: Session = Depends(get_db), admin: User = Depends(req
             "provinsi": p.provinsi,
             "pengguna": user_count,
             "prediksi": p.prediksi,
-            "rata": round((avg_h or 0) / 1000, 1) # dalam ton
+            "rata": round((avg_h or 0) / 1000, 1) # ton
         })
 
-    # Distribusi Varietas
     dist_var = db.query(
         Prediction.cultivar_name.label("varietas"),
         func.count(Prediction.id).label("jumlah")
@@ -52,16 +53,24 @@ def get_dashboard_stats(db: Session = Depends(get_db), admin: User = Depends(req
         for i, d in enumerate(dist_var)
     ]
 
-    # Prediksi per Bulan (Mock for now since SQLite date functions are tricky, we'll do simple fallback)
-    prediksi_per_bulan = [
-        {"bulan": "Feb", "jumlah": 12},
-        {"bulan": "Mar", "jumlah": 34},
-        {"bulan": "Apr", "jumlah": 23},
-        {"bulan": "Mei", "jumlah": 45},
-        {"bulan": "Jun", "jumlah": total_predictions},
-    ]
+    six_months_ago = datetime.now() - timedelta(days=180)
+    recent_preds = db.query(Prediction.created_at).filter(Prediction.created_at >= six_months_ago).all()
+    
+    month_counts = collections.defaultdict(int)
+    for rp in recent_preds:
+        if rp[0]:
+            month_str = rp[0].strftime("%b %Y")
+            month_counts[month_str] += 1
+        
+    prediksi_per_bulan = []
+    for i in range(5, -1, -1):
+        dt = datetime.now() - timedelta(days=30*i)
+        m_str = dt.strftime("%b %Y")
+        prediksi_per_bulan.append({
+            "bulan": m_str,
+            "jumlah": month_counts.get(m_str, 0)
+        })
 
-    # Aktivitas Terbaru
     recent = db.query(Prediction, User).join(User, Prediction.user_id == User.id).order_by(Prediction.created_at.desc()).limit(5).all()
     aktivitas_terbaru = [
         {
@@ -70,23 +79,154 @@ def get_dashboard_stats(db: Session = Depends(get_db), admin: User = Depends(req
             "varietas": r.Prediction.cultivar_name,
             "hasil": r.Prediction.yield_kg_ha,
             "kategori": r.Prediction.kategori,
-            "waktu": r.Prediction.created_at.strftime("%d %b %Y %H:%M")
+            "waktu": r.Prediction.created_at.strftime("%d %b %Y %H:%M") if r.Prediction.created_at else "Baru saja"
         }
         for r in recent
     ]
+
+    # Best yield
+    best_yield_val = db.query(func.max(Prediction.yield_kg_ha)).scalar()
+    best_yield = round(best_yield_val, 0) if best_yield_val else 0
+
+    # Admin list (real data)
+    admin_users = db.query(User).filter(User.role.in_(["admin", "superadmin"])).all()
+    now = datetime.now()
+    admin_list = []
+    for a in admin_users:
+        if a.last_login:
+            diff = now - a.last_login.replace(tzinfo=None)
+            if diff.days == 0:
+                login_label = f"Hari ini · {a.last_login.strftime('%H:%M')}"
+            elif diff.days == 1:
+                login_label = f"Kemarin · {a.last_login.strftime('%H:%M')}"
+            else:
+                login_label = f"{diff.days} hari lalu"
+        else:
+            login_label = "Belum pernah login"
+        admin_list.append({
+            "nama": a.nama_lengkap,
+            "email": a.email,
+            "role": a.role,
+            "loginTerakhir": login_label,
+        })
 
     return {
         "total_users": total_users,
         "total_predictions": total_predictions,
         "avg_yield": avg_yield,
+        "best_yield": best_yield,
+        "total_admin": len(admin_list),
+        "admin_list": admin_list,
         "top_provinsi": top_provinsi,
         "distribusi_varietas": distribusi_varietas,
         "prediksi_per_bulan": prediksi_per_bulan,
         "aktivitas_terbaru": aktivitas_terbaru
     }
 
-@router.get("/users", response_model=List[UserResponse])
-def get_users(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+@router.get("/users")
+def get_users_extended(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
     users = db.query(User).all()
-    # Pydantic schema doesn't have loginTerakhir natively, we can add it or just send basic
-    return users
+    result = []
+    for u in users:
+        pred_count = db.query(Prediction).filter(Prediction.user_id == u.id).count()
+        result.append({
+            "id": u.id,
+            "nama_lengkap": u.nama_lengkap,
+            "email": u.email,
+            "no_hp": u.no_hp,
+            "provinsi": u.provinsi,
+            "role": u.role,
+            "is_active": u.is_active,
+            "created_at": u.created_at,
+            "last_login": u.last_login,
+            "jumlah_prediksi": pred_count
+        })
+    return result
+
+@router.get("/predictions")
+def get_all_predictions(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    preds = db.query(Prediction, User).join(User, Prediction.user_id == User.id).order_by(Prediction.created_at.desc()).all()
+    return [
+        {
+            "id": p.Prediction.id,
+            "tanggal": p.Prediction.created_at.strftime("%d %b %Y") if p.Prediction.created_at else "N/A",
+            "petani": p.User.nama_lengkap,
+            "lokasi": p.Prediction.provinsi,
+            "varietas": p.Prediction.cultivar_name,
+            "pupukN": p.Prediction.n_total_kg_ha,
+            "luas": p.Prediction.luas_lahan_ha,
+            "yieldKgHa": p.Prediction.yield_kg_ha,
+            "kategori": p.Prediction.kategori
+        }
+        for p in preds
+    ]
+
+@router.get("/reports")
+def get_reports(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    ringkasan_bulanan = []
+    for i in range(5, -1, -1):
+        dt_start = datetime.now() - timedelta(days=30*(i+1))
+        dt_end = datetime.now() - timedelta(days=30*i)
+        
+        preds_in_month = db.query(Prediction).filter(Prediction.created_at >= dt_start, Prediction.created_at < dt_end).all()
+        users_in_month = db.query(User).filter(User.created_at >= dt_start, User.created_at < dt_end).count()
+        
+        avg_h = sum([p.yield_kg_ha for p in preds_in_month]) / len(preds_in_month) if preds_in_month else 0
+        m_str = dt_end.strftime("%b %Y")
+        
+        ringkasan_bulanan.append({
+            "bulan": m_str,
+            "prediksi": len(preds_in_month),
+            "pengguna": users_in_month,
+            "rataHasil": round(avg_h / 1000, 1) 
+        })
+        
+    total_users_before = db.query(User).filter(User.created_at < (datetime.now() - timedelta(days=180))).count()
+    current_cumulative = total_users_before
+    for r in ringkasan_bulanan:
+        current_cumulative += r["pengguna"]
+        r["pengguna"] = current_cumulative
+
+    kat_counts = db.query(Prediction.kategori, func.count(Prediction.id)).group_by(Prediction.kategori).all()
+    total_k = sum([k[1] for k in kat_counts])
+    k_map = {k[0]: k[1] for k in kat_counts}
+    
+    distribusi_kategori = [
+        {"kategori": "Sangat Baik", "jumlah": k_map.get("Sangat Baik", 0), "persen": round((k_map.get("Sangat Baik", 0)/total_k)*100) if total_k else 0, "warna": "#15803d"},
+        {"kategori": "Baik", "jumlah": k_map.get("Baik", 0), "persen": round((k_map.get("Baik", 0)/total_k)*100) if total_k else 0, "warna": "#3b82f6"},
+        {"kategori": "Cukup", "jumlah": k_map.get("Cukup", 0), "persen": round((k_map.get("Cukup", 0)/total_k)*100) if total_k else 0, "warna": "#f59e0b"},
+        {"kategori": "Perlu Perhatian", "jumlah": k_map.get("Perlu Perhatian", 0), "persen": round((k_map.get("Perlu Perhatian", 0)/total_k)*100) if total_k else 0, "warna": "#ef4444"}
+    ]
+
+    provs = db.query(Prediction.provinsi).distinct().all()
+    tabel_provinsi = []
+    no = 1
+    for p in provs:
+        p_name = p[0]
+        p_preds = db.query(Prediction).filter(Prediction.provinsi == p_name).all()
+        avg_h = sum([pr.yield_kg_ha for pr in p_preds]) / len(p_preds) if p_preds else 0
+        
+        sb = len([pr for pr in p_preds if pr.kategori == "Sangat Baik"])
+        bk = len([pr for pr in p_preds if pr.kategori == "Baik"])
+        ck = len([pr for pr in p_preds if pr.kategori == "Cukup"])
+        pp = len([pr for pr in p_preds if pr.kategori == "Perlu Perhatian"])
+        
+        tabel_provinsi.append({
+            "no": no,
+            "provinsi": p_name,
+            "prediksi": len(p_preds),
+            "rata": round(avg_h / 1000, 1),
+            "sangat": sb,
+            "baik": bk,
+            "cukup": ck,
+            "perlu": pp
+        })
+        no += 1
+        
+    tabel_provinsi.sort(key=lambda x: x["prediksi"], reverse=True)
+
+    return {
+        "ringkasan_bulanan": ringkasan_bulanan,
+        "distribusi_kategori": distribusi_kategori,
+        "tabel_provinsi": tabel_provinsi
+    }

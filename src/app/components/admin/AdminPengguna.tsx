@@ -137,7 +137,7 @@ export function AdminPengguna() {
           hp: u.no_hp || "-",
           provinsi: u.provinsi,
           tglDaftar: u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "Tidak diketahui",
-          jumlahPrediksi: 0, // MOCKED FOR NOW since not fetched in this endpoint
+          jumlahPrediksi: u.jumlah_prediksi || 0,
           status: "Aktif" as const
         }));
         setPengguna(mapped);

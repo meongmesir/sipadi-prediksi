@@ -35,8 +35,7 @@ interface Props {
   role: "admin" | "superadmin";
 }
 
-// ─── Nav Configs ──────────────────────────────────────────────────────────────
-
+const adminNavItems: NavItem[] = [
   { page: "dasbor",   label: "Dasbor",          icon: LayoutDashboard },
   { page: "prediksi", label: "Data Prediksi",    icon: BarChart3 },
   { page: "laporan",  label: "Laporan",          icon: FileText },
@@ -44,7 +43,7 @@ interface Props {
 
 const superAdminNavItems: NavItem[] = [
   { page: "dasbor",       label: "Dasbor",          icon: LayoutDashboard },
-  { page: "pengguna",     label: "Kelola Pengguna", icon: Users,      badge: 3, dividerBefore: false },
+  { page: "pengguna",     label: "Kelola Pengguna", icon: Users,      dividerBefore: false },
   { page: "kelola-admin", label: "Kelola Admin",    icon: UserCog,    dividerBefore: false },
   { page: "prediksi",     label: "Data Prediksi",   icon: BarChart3,  dividerBefore: true },
   { page: "laporan",      label: "Laporan",         icon: FileText },

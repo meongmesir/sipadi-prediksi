@@ -1,48 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
 } from "recharts";
-import { Download, FileText, Filter, Calendar, TrendingUp, Users, Sprout } from "lucide-react";
+import { Download, FileText, Filter, Calendar, TrendingUp, Users, Sprout, Loader2 } from "lucide-react";
+import { fetchWithAuth } from "../../../services/api";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const ringkasanBulanan = [
-  { bulan: "Nov 2025", prediksi: 98,  pengguna: 72,  rataHasil: 4.9 },
-  { bulan: "Des 2025", prediksi: 134, pengguna: 85,  rataHasil: 5.0 },
-  { bulan: "Jan 2026", prediksi: 112, pengguna: 91,  rataHasil: 5.1 },
-  { bulan: "Feb 2026", prediksi: 145, pengguna: 103, rataHasil: 5.2 },
-  { bulan: "Mar 2026", prediksi: 167, pengguna: 118, rataHasil: 5.2 },
-  { bulan: "Apr 2026", prediksi: 187, pengguna: 127, rataHasil: 5.3 },
-];
-
-const distribusiKategori = [
-  { kategori: "Sangat Baik",    jumlah: 312, persen: 37, warna: "#15803d" },
-  { kategori: "Baik",           jumlah: 287, persen: 34, warna: "#3b82f6" },
-  { kategori: "Cukup",          jumlah: 168, persen: 20, warna: "#f59e0b" },
-  { kategori: "Perlu Perhatian",jumlah: 76,  persen: 9,  warna: "#ef4444" },
-];
-
-const tabelProvinsi = [
-  { no: 1,  provinsi: "Jawa Tengah",       prediksi: 214, rata: 5.4, sangat: 89, baik: 78, cukup: 37, perlu: 10 },
-  { no: 2,  provinsi: "Jawa Timur",        prediksi: 178, rata: 5.1, sangat: 64, baik: 67, cukup: 35, perlu: 12 },
-  { no: 3,  provinsi: "Jawa Barat",        prediksi: 153, rata: 5.2, sangat: 59, baik: 55, cukup: 30, perlu: 9 },
-  { no: 4,  provinsi: "Sulawesi Selatan",  prediksi: 87,  rata: 5.0, sangat: 28, baik: 32, cukup: 20, perlu: 7 },
-  { no: 5,  provinsi: "Sumatera Utara",    prediksi: 64,  rata: 4.8, sangat: 18, baik: 24, cukup: 15, perlu: 7 },
-  { no: 6,  provinsi: "DI Yogyakarta",     prediksi: 47,  rata: 5.1, sangat: 17, baik: 18, cukup: 9,  perlu: 3 },
-  { no: 7,  provinsi: "NTB",               prediksi: 38,  rata: 5.0, sangat: 12, baik: 15, cukup: 8,  perlu: 3 },
-  { no: 8,  provinsi: "Bali",              prediksi: 29,  rata: 5.3, sangat: 11, baik: 12, cukup: 5,  perlu: 1 },
-];
-
-const BULAN_LIST = ["Apr 2026", "Mar 2026", "Feb 2026", "Jan 2026", "Des 2025", "Nov 2025"];
+// (MOCK Data removed. Data is fetched from API)
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function AdminLaporan() {
-  const [bulan, setBulan] = useState("Apr 2026");
+  const [reportsData, setReportsData] = useState<any>(null);
+  const [bulan, setBulan] = useState("");
   const [jenis, setJenis] = useState("ringkasan");
+  const [loading, setLoading] = useState(true);
 
-  const bulanData = ringkasanBulanan.find((r) => r.bulan === bulan) ?? ringkasanBulanan[ringkasanBulanan.length - 1];
+  useEffect(() => {
+    fetchWithAuth('/admin/reports')
+      .then(data => {
+        setReportsData(data);
+        if (data.ringkasan_bulanan && data.ringkasan_bulanan.length > 0) {
+          setBulan(data.ringkasan_bulanan[data.ringkasan_bulanan.length - 1].bulan);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Gagal mengambil data laporan:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading || !reportsData) {
+    return <div className="p-8 text-center text-gray-500"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" /> Memuat data laporan...</div>;
+  }
+
+  const ringkasanBulanan = reportsData.ringkasan_bulanan;
+  const distribusiKategori = reportsData.distribusi_kategori;
+  const tabelProvinsi = reportsData.tabel_provinsi;
+  const BULAN_LIST = [...ringkasanBulanan].map((r: any) => r.bulan).reverse();
+
+  const bulanData = ringkasanBulanan.find((r: any) => r.bulan === bulan) ?? ringkasanBulanan[ringkasanBulanan.length - 1] ?? { prediksi: 0, pengguna: 0, rataHasil: 0 };
 
   return (
     <div className="space-y-5">

@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Search, Filter, Download, Eye, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Filter, Download, Eye, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { fetchWithAuth } from "../../../services/api";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
@@ -21,20 +22,7 @@ interface Prediksi {
 // Kategori berdasarkan yield (kg/ha) relatif terhadap rata-rata nasional ~4207 kg/ha
 // Sangat Baik: >8000, Baik: >5000, Cukup: >3000, Perlu Perhatian: ≤3000
 
-const MOCK: Prediksi[] = [
-  { id: 1,  petani: "Budi Santoso",    provinsi: "Jawa Tengah",      luas: 1.5, cultivar: "IR 72", waterCode: "A", sowingDoy: 152, nTotal: 150, plantPop: 30, yieldKgHa: 9240, kategori: "Sangat Baik",    tanggal: "14 Apr 2026" },
-  { id: 2,  petani: "Siti Rahayu",     provinsi: "Jawa Barat",       luas: 0.8, cultivar: "IR 64", waterCode: "A", sowingDoy: 121, nTotal: 125, plantPop: 25, yieldKgHa: 5810, kategori: "Baik",           tanggal: "14 Apr 2026" },
-  { id: 3,  petani: "Ahmad Dahlan",    provinsi: "Sulawesi Selatan", luas: 2.0, cultivar: "IR 72", waterCode: "N", sowingDoy: 182, nTotal: 75,  plantPop: 20, yieldKgHa: 3940, kategori: "Cukup",          tanggal: "14 Apr 2026" },
-  { id: 4,  petani: "Dewi Sartika",    provinsi: "Jawa Timur",       luas: 0.5, cultivar: "IR 36", waterCode: "N", sowingDoy: 219, nTotal: 0,   plantPop: 15, yieldKgHa: 1220, kategori: "Perlu Perhatian", tanggal: "14 Apr 2026" },
-  { id: 5,  petani: "Rudi Hartono",    provinsi: "Sumatera Utara",   luas: 1.2, cultivar: "IR 64", waterCode: "A", sowingDoy: 152, nTotal: 125, plantPop: 30, yieldKgHa: 5640, kategori: "Baik",           tanggal: "13 Apr 2026" },
-  { id: 6,  petani: "Fatimah Zahra",   provinsi: "NTB",              luas: 0.7, cultivar: "IR 72", waterCode: "A", sowingDoy: 121, nTotal: 175, plantPop: 35, yieldKgHa: 10120, kategori: "Sangat Baik",   tanggal: "13 Apr 2026" },
-  { id: 7,  petani: "Maria Goreti",    provinsi: "NTT",              luas: 1.0, cultivar: "IR 36", waterCode: "N", sowingDoy: 182, nTotal: 25,  plantPop: 15, yieldKgHa: 2140, kategori: "Perlu Perhatian", tanggal: "13 Apr 2026" },
-  { id: 8,  petani: "Sukardi",         provinsi: "DI Yogyakarta",    luas: 0.6, cultivar: "IR 64", waterCode: "A", sowingDoy: 152, nTotal: 100, plantPop: 25, yieldKgHa: 4920, kategori: "Baik",           tanggal: "12 Apr 2026" },
-  { id: 9,  petani: "Yusuf Maulana",   provinsi: "Aceh",             luas: 1.8, cultivar: "IR 72", waterCode: "A", sowingDoy: 121, nTotal: 200, plantPop: 40, yieldKgHa: 13083, kategori: "Sangat Baik",   tanggal: "12 Apr 2026" },
-  { id: 10, petani: "Ratna Dewi",      provinsi: "Jawa Tengah",      luas: 1.1, cultivar: "IR 64", waterCode: "A", sowingDoy: 152, nTotal: 75,  plantPop: 25, yieldKgHa: 4310, kategori: "Baik",           tanggal: "11 Apr 2026" },
-  { id: 11, petani: "Ningrum Wati",    provinsi: "Bali",             luas: 0.4, cultivar: "IR 72", waterCode: "A", sowingDoy: 121, nTotal: 125, plantPop: 30, yieldKgHa: 6870, kategori: "Baik",           tanggal: "11 Apr 2026" },
-  { id: 12, petani: "Setiawan",        provinsi: "Jawa Barat",       luas: 2.5, cultivar: "IR 72", waterCode: "A", sowingDoy: 152, nTotal: 175, plantPop: 35, yieldKgHa: 11540, kategori: "Sangat Baik",   tanggal: "10 Apr 2026" },
-];
+// (MOCK Data removed. Data is fetched from API)
 
 const kategoriCfg = {
   "Sangat Baik":    { color: "bg-green-100 text-green-700",  dot: "bg-green-500" },
@@ -113,8 +101,22 @@ export function AdminPrediksi() {
   const [kategoriFilter, setKategoriFilter] = useState("Semua Kategori");
   const [currentPage, setCurrentPage] = useState(1);
   const [selected, setSelected] = useState<Prediksi | null>(null);
+  const [predictions, setPredictions] = useState<Prediksi[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = MOCK.filter((p) => {
+  useEffect(() => {
+    fetchWithAuth('/admin/predictions')
+      .then(data => {
+        setPredictions(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Gagal mengambil data prediksi:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const filtered = predictions.filter((p) => {
     const matchSearch = p.petani.toLowerCase().includes(search.toLowerCase()) ||
       p.provinsi.toLowerCase().includes(search.toLowerCase());
     const matchVarietas = varietasFilter === "Semua Varietas" || p.cultivar === varietasFilter;
@@ -125,7 +127,9 @@ export function AdminPrediksi() {
   const totalPage = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
 
-  const rataHasil = Math.round(MOCK.reduce((s, p) => s + p.yieldKgHa, 0) / MOCK.length);
+  const rataHasil = predictions.length > 0 ? Math.round(predictions.reduce((s, p) => s + p.yieldKgHa, 0) / predictions.length) : 0;
+
+  if (loading) return <div className="p-8 text-center text-gray-500"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" /> Memuat data prediksi...</div>;
 
   return (
     <div className="space-y-5">
@@ -134,7 +138,7 @@ export function AdminPrediksi() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-gray-900 font-bold text-2xl">Data Prediksi</h1>
-          <p className="text-gray-500 text-sm">{MOCK.length} prediksi · rata-rata {rataHasil.toLocaleString("id-ID")} kg/ha</p>
+          <p className="text-gray-500 text-sm">{predictions.length} prediksi · rata-rata {rataHasil.toLocaleString("id-ID")} kg/ha</p>
         </div>
         <button className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-sm">
           <Download className="w-4 h-4" />
@@ -145,10 +149,10 @@ export function AdminPrediksi() {
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Sangat Baik",    n: MOCK.filter((p) => p.kategori === "Sangat Baik").length,    color: "bg-green-50 border-green-200 text-green-700",  sub: ">8.000 kg/ha" },
-          { label: "Baik",           n: MOCK.filter((p) => p.kategori === "Baik").length,           color: "bg-blue-50 border-blue-200 text-blue-700",     sub: "5.000–8.000 kg/ha" },
-          { label: "Cukup",          n: MOCK.filter((p) => p.kategori === "Cukup").length,          color: "bg-amber-50 border-amber-200 text-amber-700",  sub: "3.000–5.000 kg/ha" },
-          { label: "Perlu Perhatian",n: MOCK.filter((p) => p.kategori === "Perlu Perhatian").length,color: "bg-red-50 border-red-200 text-red-700",        sub: "<3.000 kg/ha" },
+          { label: "Sangat Baik",    n: predictions.filter((p) => p.kategori === "Sangat Baik").length,    color: "bg-green-50 border-green-200 text-green-700",  sub: ">8.000 kg/ha" },
+          { label: "Baik",           n: predictions.filter((p) => p.kategori === "Baik").length,           color: "bg-blue-50 border-blue-200 text-blue-700",     sub: "5.000–8.000 kg/ha" },
+          { label: "Cukup",          n: predictions.filter((p) => p.kategori === "Cukup").length,          color: "bg-amber-50 border-amber-200 text-amber-700",  sub: "3.000–5.000 kg/ha" },
+          { label: "Perlu Perhatian",n: predictions.filter((p) => p.kategori === "Perlu Perhatian").length,color: "bg-red-50 border-red-200 text-red-700",        sub: "<3.000 kg/ha" },
         ].map((c) => (
           <div key={c.label} className={`rounded-2xl border p-4 ${c.color}`}>
             <p className="text-2xl font-bold">{c.n}</p>
