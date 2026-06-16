@@ -9,6 +9,9 @@ from app.database import get_db
 from app.models.user import User
 from app.models.prediction import Prediction
 from app.schemas.auth import UserResponse
+from app.models.admin import AppSettings, AdminActivityLog
+from app.schemas.admin import SettingsUpdate, AdminProfileUpdate, AdminCreate, UserStatusUpdate
+from app.services.auth_service import get_password_hash
 from app.utils.deps import get_current_user, require_admin, require_superadmin
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -128,7 +131,10 @@ def get_users_extended(db: Session = Depends(get_db), admin: User = Depends(requ
     users = db.query(User).all()
     result = []
     for u in users:
-        pred_count = db.query(Prediction).filter(Prediction.user_id == u.id).count()
+        if u.role in ["admin", "superadmin"]:
+            count = db.query(AdminActivityLog).filter(AdminActivityLog.admin_id == u.id).count()
+        else:
+            count = db.query(Prediction).filter(Prediction.user_id == u.id).count()
         result.append({
             "id": u.id,
             "nama_lengkap": u.nama_lengkap,
@@ -139,7 +145,7 @@ def get_users_extended(db: Session = Depends(get_db), admin: User = Depends(requ
             "is_active": u.is_active,
             "created_at": u.created_at,
             "last_login": u.last_login,
-            "jumlah_prediksi": pred_count
+            "jumlah_prediksi": count
         })
     return result
 
@@ -230,3 +236,99 @@ def get_reports(db: Session = Depends(get_db), admin: User = Depends(require_adm
         "distribusi_kategori": distribusi_kategori,
         "tabel_provinsi": tabel_provinsi
     }
+
+@router.get("/settings")
+def get_settings(db: Session = Depends(get_db), admin: User = Depends(require_superadmin)):
+    settings = db.query(AppSettings).all()
+    # default values
+    res = {
+        "notif_pengguna": True,
+        "notif_prediksi": True,
+        "notif_email": False,
+        "maintenance_mode": False,
+        "registrasi_buka": True,
+        "auto_backup": True,
+        "log_aktivitas": True
+    }
+    for s in settings:
+        if s.value == "true":
+            res[s.key] = True
+        elif s.value == "false":
+            res[s.key] = False
+    return res
+
+@router.put("/settings")
+def update_settings(req: SettingsUpdate, db: Session = Depends(get_db), admin: User = Depends(require_superadmin)):
+    for k, v in req.model_dump().items():
+        val_str = "true" if v else "false"
+        setting = db.query(AppSettings).filter(AppSettings.key == k).first()
+        if setting:
+            setting.value = val_str
+        else:
+            setting = AppSettings(key=k, value=val_str)
+            db.add(setting)
+            
+    log = AdminActivityLog(admin_id=admin.id, action="Ubah Pengaturan", target_table="app_settings")
+    db.add(log)
+    db.commit()
+    return {"message": "Pengaturan berhasil disimpan"}
+
+@router.put("/profile")
+def update_profile(req: AdminProfileUpdate, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    current_admin.nama_lengkap = req.nama_lengkap
+    current_admin.email = req.email
+    if req.password:
+        current_admin.password_hash = get_password_hash(req.password)
+        
+    log = AdminActivityLog(admin_id=current_admin.id, action="Ubah Profil", target_table="users")
+    db.add(log)
+    db.commit()
+    return {"message": "Profil berhasil diperbarui"}
+
+@router.post("/users")
+def create_admin(req: AdminCreate, db: Session = Depends(get_db), admin: User = Depends(require_superadmin)):
+    if db.query(User).filter(User.email == req.email).first():
+        raise HTTPException(status_code=400, detail="Email sudah digunakan")
+    new_admin = User(
+        nama_lengkap=req.nama_lengkap,
+        email=req.email,
+        password_hash=get_password_hash(req.password),
+        role="admin"
+    )
+    db.add(new_admin)
+    log = AdminActivityLog(admin_id=admin.id, action="Tambah Admin", target_table="users")
+    db.add(log)
+    db.commit()
+    db.refresh(new_admin)
+    return new_admin
+
+@router.put("/users/{user_id}/status")
+def update_user_status(user_id: int, req: UserStatusUpdate, db: Session = Depends(get_db), admin: User = Depends(require_superadmin)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Pengguna tidak ditemukan")
+    if user.role == "superadmin":
+        raise HTTPException(status_code=400, detail="Tidak dapat menonaktifkan Super Admin")
+    user.is_active = req.is_active
+    
+    log = AdminActivityLog(admin_id=admin.id, action=f"{'Aktifkan' if req.is_active else 'Nonaktifkan'} Pengguna", target_table="users", target_id=user_id)
+    db.add(log)
+    db.commit()
+    return {"message": f"Status pengguna diperbarui"}
+
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), admin: User = Depends(require_superadmin)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Pengguna tidak ditemukan")
+    if user.role == "superadmin":
+        raise HTTPException(status_code=400, detail="Tidak dapat menghapus Super Admin")
+    
+    # Hapus juga prediksi terkait pengguna (Cascade Delete)
+    db.query(Prediction).filter(Prediction.user_id == user_id).delete()
+    db.delete(user)
+    
+    log = AdminActivityLog(admin_id=admin.id, action="Hapus Pengguna", target_table="users", target_id=user_id)
+    db.add(log)
+    db.commit()
+    return {"message": "Pengguna dan data terkait berhasil dihapus"}

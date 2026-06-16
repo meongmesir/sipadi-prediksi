@@ -14,6 +14,7 @@ interface Pengguna {
   hp: string;
   provinsi: string;
   tglDaftar: string;
+  loginTerakhir: string;
   jumlahPrediksi: number;
   status: "Aktif" | "Nonaktif" | "Menunggu";
 }
@@ -36,7 +37,17 @@ const PER_PAGE = 8;
 
 // ─── Detail Modal ─────────────────────────────────────────────────────────────
 
-function DetailModal({ p, onClose }: { p: Pengguna; onClose: () => void }) {
+function DetailModal({ 
+  p, 
+  onClose, 
+  onToggleStatus,
+  onDelete
+}: { 
+  p: Pengguna; 
+  onClose: () => void;
+  onToggleStatus: (id: number, isActive: boolean) => void;
+  onDelete: (id: number) => void;
+}) {
   const cfg = statusCfg[p.status];
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -78,34 +89,48 @@ function DetailModal({ p, onClose }: { p: Pengguna; onClose: () => void }) {
                 </div>
               </div>
             ))}
-            <div className="flex items-center gap-3">
-              <div className="w-4 h-4 text-gray-400 flex-shrink-0 text-xs font-bold">📅</div>
-              <div>
-                <p className="text-gray-400 text-xs">Tanggal Daftar</p>
-                <p className="text-gray-700 text-sm font-medium">{p.tglDaftar}</p>
+            <div className="grid grid-cols-2 gap-3 mt-2 pt-2 border-t border-gray-100">
+              <div className="flex items-start gap-3">
+                <div className="w-4 h-4 text-gray-400 flex-shrink-0 text-xs font-bold mt-0.5">📅</div>
+                <div>
+                  <p className="text-gray-400 text-xs">Tanggal Daftar</p>
+                  <p className="text-gray-700 text-sm font-medium">{p.tglDaftar}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-4 h-4 text-gray-400 flex-shrink-0 text-xs font-bold mt-0.5">🕒</div>
+                <div>
+                  <p className="text-gray-400 text-xs">Login Terakhir</p>
+                  <p className="text-gray-700 text-sm font-medium">{p.loginTerakhir}</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2">
-            {p.status === "Menunggu" && (
-              <button className="flex-1 flex items-center justify-center gap-2 bg-green-700 hover:bg-green-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors">
-                <UserCheck className="w-4 h-4" /> Verifikasi
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              {p.status === "Menunggu" && (
+                <button onClick={() => onToggleStatus(p.id, true)} className="flex-1 flex items-center justify-center gap-2 bg-green-700 hover:bg-green-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors">
+                  <UserCheck className="w-4 h-4" /> Verifikasi
+                </button>
+              )}
+              {p.status === "Aktif" && (
+                <button onClick={() => onToggleStatus(p.id, false)} className="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 rounded-xl text-sm transition-colors">
+                  <UserX className="w-4 h-4" /> Nonaktifkan
+                </button>
+              )}
+              {p.status === "Nonaktif" && (
+                <button onClick={() => onToggleStatus(p.id, true)} className="flex-1 flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-3 rounded-xl text-sm transition-colors">
+                  <UserCheck className="w-4 h-4" /> Aktifkan
+                </button>
+              )}
+              <button onClick={onClose} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition-colors">
+                Tutup
               </button>
-            )}
-            {p.status === "Aktif" && (
-              <button className="flex-1 flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3 rounded-xl text-sm transition-colors">
-                <UserX className="w-4 h-4" /> Nonaktifkan
-              </button>
-            )}
-            {p.status === "Nonaktif" && (
-              <button className="flex-1 flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-3 rounded-xl text-sm transition-colors">
-                <UserCheck className="w-4 h-4" /> Aktifkan
-              </button>
-            )}
-            <button onClick={onClose} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition-colors">
-              Tutup
+            </div>
+            <button onClick={() => onDelete(p.id)} className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 border-2 border-red-100 text-red-600 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+              Hapus Pengguna Secara Permanen
             </button>
           </div>
         </div>
@@ -126,7 +151,8 @@ export function AdminPengguna() {
   const [pengguna, setPengguna] = useState<Pengguna[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchUsers = () => {
+    setLoading(true);
     fetchWithAuth('/admin/users')
       .then((data: any[]) => {
         const petaniUsers = data.filter((u: any) => u.role === 'petani');
@@ -137,14 +163,45 @@ export function AdminPengguna() {
           hp: u.no_hp || "-",
           provinsi: u.provinsi,
           tglDaftar: u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "Tidak diketahui",
+          loginTerakhir: u.last_login ? new Date(u.last_login).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Belum pernah login",
           jumlahPrediksi: u.jumlah_prediksi || 0,
-          status: "Aktif" as const
+          status: u.is_active ? "Aktif" : "Nonaktif"
         }));
         setPengguna(mapped);
       })
       .catch((err) => console.error("Error fetching pengguna:", err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
+
+  const handleToggleStatus = async (id: number, isActive: boolean) => {
+    try {
+      await fetchWithAuth(`/admin/users/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ is_active: isActive })
+      });
+      fetchUsers();
+      setSelected(null);
+    } catch (err) {
+      alert("Gagal merubah status: " + err);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Yakin ingin menghapus pengguna ini beserta semua data prediksinya secara permanen?")) return;
+    try {
+      await fetchWithAuth(`/admin/users/${id}`, {
+        method: 'DELETE'
+      });
+      fetchUsers();
+      setSelected(null);
+    } catch (err) {
+      alert("Gagal menghapus pengguna: " + err);
+    }
+  };
 
   // Filter
   const filtered = pengguna.filter((p) => {
@@ -317,7 +374,12 @@ export function AdminPengguna() {
       </div>
 
       {/* ── Detail Modal ── */}
-      {selected && <DetailModal p={selected} onClose={() => setSelected(null)} />}
+      {selected && <DetailModal 
+        p={selected} 
+        onClose={() => setSelected(null)} 
+        onToggleStatus={handleToggleStatus}
+        onDelete={handleDelete}
+      />}
     </div>
   );
 }

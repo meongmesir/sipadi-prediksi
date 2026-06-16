@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from datetime import timedelta
 from app.database import get_db
 from app.models.user import User
@@ -44,6 +45,8 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
             detail="Incorrect email/phone or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    user.last_login = func.now()
+    db.commit()
     
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user": user}

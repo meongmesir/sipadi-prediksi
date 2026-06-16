@@ -315,7 +315,8 @@ export function AdminKelolaAdmin() {
   const [showTambah, setShowTambah] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchAdmins = () => {
+    setLoading(true);
     fetchWithAuth('/admin/users')
       .then((data: any[]) => {
         const adminUsers = data.filter((u: any) => u.role === 'admin' || u.role === 'superadmin');
@@ -326,12 +327,16 @@ export function AdminKelolaAdmin() {
           tglDibuat: u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "Tidak diketahui",
           loginTerakhir: u.last_login ? new Date(u.last_login).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Belum pernah login",
           jumlahAksi: u.jumlah_prediksi || 0,
-          status: u.is_active ? "Aktif" as const : "Nonaktif" as const
+          status: u.is_active ? "Aktif" : "Nonaktif"
         }));
         setAdmins(mapped);
       })
       .catch((err) => console.error("Gagal mengambil data user:", err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchAdmins();
   }, []);
 
   // Filter
@@ -348,28 +353,39 @@ export function AdminKelolaAdmin() {
 
   const totalAktif = admins.filter((a) => a.status === "Aktif").length;
 
-  const handleToggleStatus = (id: number) => {
-    setAdmins((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? { ...a, status: a.status === "Aktif" ? "Nonaktif" : "Aktif" }
-          : a
-      )
-    );
+  const handleToggleStatus = async (id: number) => {
+    const adminToToggle = admins.find(a => a.id === id);
+    if (!adminToToggle) return;
+    
+    try {
+      await fetchWithAuth(`/admin/users/${id}/status`, {
+        method: 'PUT',
+        body: JSON.stringify({ is_active: adminToToggle.status !== "Aktif" })
+      });
+      fetchAdmins();
+    } catch (err) {
+      alert("Gagal merubah status admin: " + err);
+    }
   };
 
-  const handleTambahAdmin = (nama: string, email: string) => {
-    const newAdmin: AdminData = {
-      id: Date.now(),
-      nama,
-      email,
-      tglDibuat: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-      loginTerakhir: "Belum pernah login",
-      jumlahAksi: 0,
-      status: "Aktif",
-    };
-    setAdmins((prev) => [newAdmin, ...prev]);
-    setShowTambah(false);
+  const handleTambahAdmin = async (nama: string, email: string) => {
+    // Generate random default password for new admin
+    const defaultPassword = "Admin" + Math.floor(1000 + Math.random() * 9000);
+    try {
+      await fetchWithAuth('/admin/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          nama_lengkap: nama,
+          email: email,
+          password: defaultPassword
+        })
+      });
+      fetchAdmins();
+      setShowTambah(false);
+      alert(`Admin berhasil dibuat!\n\nEmail: ${email}\nPassword: ${defaultPassword}\n\nHarap catat password ini!`);
+    } catch (err) {
+      alert("Gagal menambah admin: " + err);
+    }
   };
 
   return (

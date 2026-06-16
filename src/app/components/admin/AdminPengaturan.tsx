@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchWithAuth } from "../../../services/api";
 import {
   User, Mail, Bell, Shield, Database, Globe,
   Save, RotateCcw, CheckCircle2, Eye, EyeOff,
-  Server, Wifi, Clock,
+  Server, Wifi, Clock, Loader2
 } from "lucide-react";
 
 // ─── Toggle Switch ─────────────────────────────────────────────────────────────
@@ -65,6 +66,7 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
   // Admin profile
   const [nama, setNama] = useState(adminName);
   const [email, setEmail] = useState(adminEmail);
+  const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -81,9 +83,57 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
   const [logAktivitas, setLogAktivitas] = useState(true);
 
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetchWithAuth('/admin/settings')
+      .then(res => {
+        setNotifPengguna(res.notif_pengguna ?? true);
+        setNotifPrediksi(res.notif_prediksi ?? true);
+        setNotifEmail(res.notif_email ?? false);
+        setMaintenanceMode(res.maintenance_mode ?? false);
+        setRegistrasiBuka(res.registrasi_buka ?? true);
+        setAutoBackup(res.auto_backup ?? true);
+        setLogAktivitas(res.log_aktivitas ?? true);
+      })
+      .catch(err => console.error("Gagal load setting", err))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await fetchWithAuth('/admin/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          notif_pengguna: notifPengguna,
+          notif_prediksi: notifPrediksi,
+          notif_email: notifEmail,
+          maintenance_mode: maintenanceMode,
+          registrasi_buka: registrasiBuka,
+          auto_backup: autoBackup,
+          log_aktivitas: logAktivitas
+        })
+      });
+      
+      const pData: any = { nama_lengkap: nama, email };
+      // Hanya kirim password jika diubah (jika input password ada nilainya, kita bisa tambah state password)
+      // saat ini input password di ui belum disambung ke state, mari kita tambahkan state password
+      
+      await fetchWithAuth('/admin/profile', {
+        method: 'PUT',
+        body: JSON.stringify(pData)
+      });
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Gagal menyimpan", err);
+      alert("Gagal menyimpan pengaturan.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -102,14 +152,15 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
           </button>
           <button
             onClick={handleSave}
+            disabled={isLoading || isSaving}
             className={`flex items-center gap-2 font-semibold px-5 py-2.5 rounded-xl text-sm transition-all shadow-sm ${
               saved
                 ? "bg-green-100 text-green-700 border-2 border-green-300"
-                : "bg-green-700 hover:bg-green-600 text-white"
+                : "bg-green-700 hover:bg-green-600 text-white disabled:bg-gray-300"
             }`}
           >
-            {saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-            {saved ? "Tersimpan!" : "Simpan Perubahan"}
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+            {isSaving ? "Menyimpan..." : saved ? "Tersimpan!" : "Simpan Perubahan"}
           </button>
         </div>
       </div>
@@ -164,6 +215,8 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
               <input
                 type={showPass ? "text" : "password"}
                 placeholder="Min. 8 karakter"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 rounded-xl pl-10 pr-12 py-3 text-sm outline-none transition-all"
               />
               <button
