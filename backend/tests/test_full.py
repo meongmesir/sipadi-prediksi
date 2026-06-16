@@ -9,8 +9,7 @@ Mensimulasikan semua alur pengguna yang ada di frontend:
 5. Login Admin & SuperAdmin
 6. Dasbor admin stats
 7. Kelola data pengguna
-8. Ambil & ubah harga gabah
-9. Cek akses terlarang (otorisasi)
+8. Cek akses terlarang (otorisasi)
 =============================================================
 """
 import requests
@@ -186,34 +185,7 @@ def run_full_test():
         check("Ada user dengan role 'admin'", "admin" in roles)
         print(f"  [INFO] Total user di DB: {len(users)}")
 
-    # ════════════════════════════════════════════════════════
-    section("7. PANEL ADMIN - HARGA GABAH")
-    # ════════════════════════════════════════════════════════
-    r = requests.get(f"{BASE_URL}/admin/harga", headers=admin_h)
-    check("Admin: Ambil semua harga provinsi (200)", r.status_code == 200, r)
-    if r.status_code == 200:
-        harga_list = r.json()
-        check("Harga: Data harga berisi list", isinstance(harga_list, list))
-        check("Harga: Berisi >= 31 provinsi", len(harga_list) >= 31)
-        first = harga_list[0] if harga_list else {}
-        check("Harga: Field 'provinsi' ada", "provinsi" in first)
-        check("Harga: Field 'harga_saat_ini' ada", "harga_saat_ini" in first)
-        check("Harga: Field 'hpp' ada", "hpp" in first)
-        print(f"  [INFO] Jumlah provinsi di database: {len(harga_list)}")
 
-    # Update harga Jawa Timur
-    r = requests.post(
-        f"{BASE_URL}/admin/harga/update?provinsi=Jawa%20Timur",
-        json={"harga_saat_ini": 5999},
-        headers=admin_h
-    )
-    check("Admin: Update harga Jawa Timur (200)", r.status_code == 200, r)
-
-    # Verifikasi update tersimpan
-    r = requests.get(f"{BASE_URL}/admin/harga", headers=admin_h)
-    if r.status_code == 200:
-        updated = next((h for h in r.json() if h["provinsi"] == "Jawa Timur"), None)
-        check("Verifikasi: Harga Jawa Timur terupdate ke 5999", updated and updated.get("harga_saat_ini") == 5999)
 
     # ════════════════════════════════════════════════════════
     section("8. KEAMANAN (Authorization Boundaries)")
@@ -223,7 +195,6 @@ def run_full_test():
         ("GET", "/predict/history"),
         ("GET", "/admin/dashboard/stats"),
         ("GET", "/admin/users"),
-        ("GET", "/admin/harga"),
     ]
     for method, ep in endpoints_protected:
         r = requests.request(method, f"{BASE_URL}{ep}")

@@ -71,7 +71,7 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
   // Notifikasi
   const [notifPengguna, setNotifPengguna] = useState(true);
   const [notifPrediksi, setNotifPrediksi] = useState(true);
-  const [notifHarga, setNotifHarga] = useState(true);
+
   const [notifEmail, setNotifEmail] = useState(false);
 
   // Sistem
@@ -80,9 +80,6 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
   const [autoBackup, setAutoBackup] = useState(true);
   const [logAktivitas, setLogAktivitas] = useState(true);
 
-  // Harga
-  const [autoUpdateHarga, setAutoUpdateHarga] = useState(false);
-  const [intervalUpdate, setIntervalUpdate] = useState("7");
 
   const handleSave = () => {
     setSaved(true);
@@ -189,9 +186,7 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
         <SettingRow label="Prediksi Masuk" desc="Notifikasi saat ada prediksi panen baru dari petani">
           <Toggle enabled={notifPrediksi} onChange={setNotifPrediksi} />
         </SettingRow>
-        <SettingRow label="Perubahan Harga Signifikan" desc="Notifikasi jika harga gabah berubah lebih dari 5%">
-          <Toggle enabled={notifHarga} onChange={setNotifHarga} />
-        </SettingRow>
+
         <SettingRow label="Kirim via Email" desc="Kirim notifikasi ke email admin (memerlukan konfigurasi SMTP)">
           <Toggle enabled={notifEmail} onChange={setNotifEmail} />
         </SettingRow>
@@ -216,32 +211,7 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
         </SettingRow>
       </SectionCard>
 
-      {/* ── Harga Komoditas ── */}
-      <SectionCard title="Update Harga Komoditas" icon={Globe}>
-        <SettingRow
-          label="Update Harga Otomatis"
-          desc="Ambil data harga gabah terbaru dari API BPS secara otomatis"
-        >
-          <Toggle enabled={autoUpdateHarga} onChange={setAutoUpdateHarga} />
-        </SettingRow>
-        {autoUpdateHarga && (
-          <SettingRow label="Interval Update" desc="Seberapa sering sistem mengambil data harga terbaru">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-gray-400" />
-              <select
-                value={intervalUpdate}
-                onChange={(e) => setIntervalUpdate(e.target.value)}
-                className="border-2 border-gray-200 focus:border-green-500 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none"
-              >
-                <option value="1">Setiap hari</option>
-                <option value="3">Setiap 3 hari</option>
-                <option value="7">Setiap minggu</option>
-                <option value="30">Setiap bulan</option>
-              </select>
-            </div>
-          </SettingRow>
-        )}
-      </SectionCard>
+
 
       {/* ── Info Sistem ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">

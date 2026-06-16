@@ -8,12 +8,12 @@ import { Download, FileText, Filter, Calendar, TrendingUp, Users, Sprout } from 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 const ringkasanBulanan = [
-  { bulan: "Nov 2025", prediksi: 98,  pengguna: 72,  rataHasil: 4.9, rataHarga: 5520 },
-  { bulan: "Des 2025", prediksi: 134, pengguna: 85,  rataHasil: 5.0, rataHarga: 5680 },
-  { bulan: "Jan 2026", prediksi: 112, pengguna: 91,  rataHasil: 5.1, rataHarga: 5750 },
-  { bulan: "Feb 2026", prediksi: 145, pengguna: 103, rataHasil: 5.2, rataHarga: 5820 },
-  { bulan: "Mar 2026", prediksi: 167, pengguna: 118, rataHasil: 5.2, rataHarga: 5790 },
-  { bulan: "Apr 2026", prediksi: 187, pengguna: 127, rataHasil: 5.3, rataHarga: 5850 },
+  { bulan: "Nov 2025", prediksi: 98,  pengguna: 72,  rataHasil: 4.9 },
+  { bulan: "Des 2025", prediksi: 134, pengguna: 85,  rataHasil: 5.0 },
+  { bulan: "Jan 2026", prediksi: 112, pengguna: 91,  rataHasil: 5.1 },
+  { bulan: "Feb 2026", prediksi: 145, pengguna: 103, rataHasil: 5.2 },
+  { bulan: "Mar 2026", prediksi: 167, pengguna: 118, rataHasil: 5.2 },
+  { bulan: "Apr 2026", prediksi: 187, pengguna: 127, rataHasil: 5.3 },
 ];
 
 const distribusiKategori = [
@@ -105,7 +105,6 @@ export function AdminLaporan() {
               { icon: FileText, label: "Total Prediksi", val: `${bulanData.prediksi}`, sub: bulan, color: "bg-blue-600" },
               { icon: Users,    label: "Pengguna Aktif",  val: `${bulanData.pengguna}`, sub: "pengguna terdaftar", color: "bg-green-700" },
               { icon: Sprout,   label: "Rata-rata Hasil", val: `${bulanData.rataHasil} t/ha`, sub: "rata nasional", color: "bg-teal-600" },
-              { icon: TrendingUp, label: "Harga Rata-rata", val: `Rp ${bulanData.rataHarga.toLocaleString("id-ID")}`, sub: "per kg", color: "bg-amber-500" },
             ].map((c) => (
               <div key={c.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${c.color}`}>
@@ -154,7 +153,7 @@ export function AdminLaporan() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    {["Bulan", "Prediksi", "Pengguna", "Rata Hasil (t/ha)", "Rata Harga (Rp/kg)"].map((h) => (
+                    {["Bulan", "Prediksi", "Pengguna", "Rata Hasil (t/ha)"].map((h) => (
                       <th key={h} className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
@@ -168,7 +167,6 @@ export function AdminLaporan() {
                       <td className="px-5 py-4 text-gray-700 text-sm">{r.prediksi}</td>
                       <td className="px-5 py-4 text-gray-700 text-sm">{r.pengguna}</td>
                       <td className="px-5 py-4 text-gray-700 text-sm">{r.rataHasil}</td>
-                      <td className="px-5 py-4 text-gray-700 text-sm">Rp {r.rataHarga.toLocaleString("id-ID")}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -152,11 +152,10 @@ export function HalamanUtama({ onMulai, onDaftar, isLoggedIn, userName }: Props)
             <p className="text-2xl mb-2">🌾</p>
             <h2 className="text-white font-bold text-xl mb-1.5">Daftar Akun — Gratis Selamanya</h2>
             <p className="text-green-200 text-base leading-relaxed max-w-sm">
-              Simpan riwayat prediksi lahan Anda, pantau beberapa petak sawah sekaligus,
-              dan dapatkan notifikasi harga gabah terbaru.
+              Simpan riwayat prediksi lahan Anda, dan pantau beberapa petak sawah sekaligus.
             </p>
             <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
-              {["✓ Gratis", "✓ Tanpa iklan", "✓ Data tersimpan", "✓ Notifikasi harga"].map((t) => (
+              {["✓ Gratis", "✓ Tanpa iklan", "✓ Data tersimpan"].map((t) => (
                 <span key={t} className="text-xs bg-white/20 text-white px-3 py-1 rounded-full border border-white/20">
                   {t}
                 </span>

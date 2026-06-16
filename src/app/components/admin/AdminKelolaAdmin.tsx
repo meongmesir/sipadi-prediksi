@@ -71,7 +71,7 @@ function DetailModal({
             <Shield className="w-4 h-4 text-amber-600 flex-shrink-0" />
             <div>
               <p className="text-amber-800 font-semibold text-sm">Administrator</p>
-              <p className="text-amber-600 text-xs">Akses: Data Prediksi, Harga, Laporan</p>
+              <p className="text-amber-600 text-xs">Akses: Data Prediksi, Laporan</p>
             </div>
           </div>
 
@@ -209,7 +209,7 @@ function TambahAdminModal({
               <div className="bg-violet-50 border border-violet-200 rounded-xl p-3.5 flex items-start gap-2.5">
                 <Crown className="w-4 h-4 text-violet-700 flex-shrink-0 mt-0.5" />
                 <p className="text-violet-700 text-xs leading-relaxed">
-                  Admin baru akan mendapatkan akses ke: Data Prediksi, Harga Komoditas (termasuk HPP), dan Laporan. Akses Kelola Pengguna & Pengaturan hanya untuk Super Admin.
+                  Admin baru akan mendapatkan akses ke: Data Prediksi, dan Laporan. Akses Kelola Pengguna & Pengaturan hanya untuk Super Admin.
                 </p>
               </div>
 

@@ -1,7 +1,6 @@
 from app.database import SessionLocal, engine, Base
 from app.models.user import User
 from app.models.provinsi_geo import ProvinsiGeo
-from app.models.harga import HargaGabah
 from app.services.auth_service import get_password_hash
 
 # Create tables
@@ -79,18 +78,9 @@ def seed():
         if not db.query(ProvinsiGeo).filter(ProvinsiGeo.nama == p["nama"]).first():
             geo = ProvinsiGeo(**p)
             db.add(geo)
-            
-            # Tambahkan harga gabah sekalian
-            harga = HargaGabah(
-                provinsi=p["nama"],
-                harga_saat_ini=5800 + (len(p["nama"]) * 100),
-                hpp=6500,
-                trend="stabil"
-            )
-            db.add(harga)
 
     db.commit()
-    print("Seeded Provinsi and Harga")
+    print("Seeded Provinsi")
     db.close()
 
 if __name__ == "__main__":

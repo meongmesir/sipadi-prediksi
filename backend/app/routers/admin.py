@@ -5,9 +5,7 @@ from typing import List, Any
 from app.database import get_db
 from app.models.user import User
 from app.models.prediction import Prediction
-from app.models.harga import HargaGabah, HargaGabahHistory
 from app.schemas.auth import UserResponse
-from app.schemas.harga import HargaGabahResponse, HargaGabahUpdate
 from app.utils.deps import get_current_user, require_admin, require_superadmin
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -92,21 +90,3 @@ def get_users(db: Session = Depends(get_db), admin: User = Depends(require_admin
     users = db.query(User).all()
     # Pydantic schema doesn't have loginTerakhir natively, we can add it or just send basic
     return users
-
-@router.get("/harga", response_model=List[HargaGabahResponse])
-def get_harga(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    return db.query(HargaGabah).all()
-
-@router.post("/harga/update")
-def update_harga(provinsi: str, data: HargaGabahUpdate, db: Session = Depends(get_db), admin: User = Depends(require_admin)):
-    harga = db.query(HargaGabah).filter(HargaGabah.provinsi == provinsi).first()
-    if not harga:
-        raise HTTPException(status_code=404, detail="Provinsi not found")
-        
-    if data.harga_saat_ini is not None:
-        harga.harga_saat_ini = data.harga_saat_ini
-    if data.hpp is not None:
-        harga.hpp = data.hpp
-        
-    db.commit()
-    return {"message": "Harga updated successfully"}

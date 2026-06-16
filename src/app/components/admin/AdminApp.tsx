@@ -9,7 +9,6 @@ import { AdminDasbor } from "./AdminDasbor";
 import { AdminPengguna } from "./AdminPengguna";
 import { AdminKelolaAdmin } from "./AdminKelolaAdmin";
 import { AdminPrediksi } from "./AdminPrediksi";
-import { AdminHarga } from "./AdminHarga";
 import { AdminLaporan } from "./AdminLaporan";
 import { AdminPengaturan } from "./AdminPengaturan";
 
@@ -19,7 +18,6 @@ export type AdminPage =
   | "pengguna"
   | "kelola-admin"
   | "prediksi"
-  | "harga"
   | "laporan"
   | "pengaturan";
 
@@ -39,10 +37,8 @@ interface Props {
 
 // ─── Nav Configs ──────────────────────────────────────────────────────────────
 
-const adminNavItems: NavItem[] = [
   { page: "dasbor",   label: "Dasbor",          icon: LayoutDashboard },
   { page: "prediksi", label: "Data Prediksi",    icon: BarChart3 },
-  { page: "harga",    label: "Harga Komoditas",  icon: DollarSign },
   { page: "laporan",  label: "Laporan",          icon: FileText },
 ];
 
@@ -51,7 +47,6 @@ const superAdminNavItems: NavItem[] = [
   { page: "pengguna",     label: "Kelola Pengguna", icon: Users,      badge: 3, dividerBefore: false },
   { page: "kelola-admin", label: "Kelola Admin",    icon: UserCog,    dividerBefore: false },
   { page: "prediksi",     label: "Data Prediksi",   icon: BarChart3,  dividerBefore: true },
-  { page: "harga",        label: "Harga Komoditas", icon: DollarSign },
   { page: "laporan",      label: "Laporan",         icon: FileText },
   { page: "pengaturan",   label: "Pengaturan",      icon: Settings,   dividerBefore: true },
 ];
@@ -303,7 +298,6 @@ export function AdminApp({ user, onLogout, role }: Props) {
             {page === "pengguna"     && isSuperAdmin && <AdminPengguna />}
             {page === "kelola-admin" && isSuperAdmin && <AdminKelolaAdmin />}
             {page === "prediksi"     && <AdminPrediksi />}
-            {page === "harga"        && <AdminHarga />}
             {page === "laporan"      && <AdminLaporan />}
             {page === "pengaturan"   && isSuperAdmin && <AdminPengaturan adminName={user.namaLengkap} adminEmail={user.email} />}
           </div>
