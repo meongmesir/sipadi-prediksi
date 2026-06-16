@@ -10,8 +10,15 @@ from app.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+from app.models.admin import AppSettings
+
 @router.post("/register", response_model=Token)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
+    # Cek apakah registrasi dibuka
+    setting = db.query(AppSettings).filter(AppSettings.key == "registrasi_buka").first()
+    if setting and setting.value == "false":
+        raise HTTPException(status_code=403, detail="Pendaftaran pengguna baru sedang ditutup oleh administrator.")
+
     # Check if email exists
     db_user = db.query(User).filter(User.email == user_data.email).first()
     if db_user:

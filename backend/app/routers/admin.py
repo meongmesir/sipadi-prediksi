@@ -12,6 +12,8 @@ from app.schemas.auth import UserResponse
 from app.models.admin import AppSettings, AdminActivityLog
 from app.schemas.admin import SettingsUpdate, AdminProfileUpdate, AdminCreate, UserStatusUpdate
 from app.services.auth_service import get_password_hash
+from sqlalchemy import text
+from datetime import datetime
 from app.utils.deps import get_current_user, require_admin, require_superadmin
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -143,8 +145,8 @@ def get_users_extended(db: Session = Depends(get_db), admin: User = Depends(requ
             "provinsi": u.provinsi,
             "role": u.role,
             "is_active": u.is_active,
-            "created_at": u.created_at,
-            "last_login": u.last_login,
+            "created_at": u.created_at.isoformat() + ("Z" if u.created_at and not u.created_at.tzinfo else "") if u.created_at else None,
+            "last_login": u.last_login.isoformat() + ("Z" if u.last_login and not u.last_login.tzinfo else "") if u.last_login else None,
             "jumlah_prediksi": count
         })
     return result
@@ -332,3 +334,24 @@ def delete_user(user_id: int, db: Session = Depends(get_db), admin: User = Depen
     db.add(log)
     db.commit()
     return {"message": "Pengguna dan data terkait berhasil dihapus"}
+
+@router.get("/system-info")
+def get_system_info(db: Session = Depends(get_db), admin: User = Depends(require_admin)):
+    # Cek database ping
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "🟢 Terhubung"
+    except Exception:
+        db_status = "🔴 Gagal terhubung"
+
+    import os
+    # Cek model (asumsi model_rf.pkl atau sejenisnya ada di folder app/ml_models)
+    model_path = "app/ml_models/random_forest_model.pkl"
+    ml_status = "🟢 Siap digunakan" if os.path.exists(model_path) else "🔴 Model tidak ditemukan"
+
+    return {
+        "version": "v2.1.0",
+        "db_status": db_status,
+        "ml_status": ml_status,
+        "server_time": datetime.now().strftime("%A, %d %b %Y, %H.%M") + " WIB"
+    }

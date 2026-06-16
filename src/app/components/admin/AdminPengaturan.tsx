@@ -70,34 +70,25 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
   const [showPass, setShowPass] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Notifikasi
-  const [notifPengguna, setNotifPengguna] = useState(true);
-  const [notifPrediksi, setNotifPrediksi] = useState(true);
-
-  const [notifEmail, setNotifEmail] = useState(false);
-
   // Sistem
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [registrasiBuka, setRegistrasiBuka] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(true);
-  const [logAktivitas, setLogAktivitas] = useState(true);
-
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [systemInfo, setSystemInfo] = useState<any>(null);
 
   useEffect(() => {
-    fetchWithAuth('/admin/settings')
-      .then(res => {
-        setNotifPengguna(res.notif_pengguna ?? true);
-        setNotifPrediksi(res.notif_prediksi ?? true);
-        setNotifEmail(res.notif_email ?? false);
-        setMaintenanceMode(res.maintenance_mode ?? false);
-        setRegistrasiBuka(res.registrasi_buka ?? true);
-        setAutoBackup(res.auto_backup ?? true);
-        setLogAktivitas(res.log_aktivitas ?? true);
+    Promise.all([
+      fetchWithAuth('/admin/settings'),
+      fetchWithAuth('/admin/system-info')
+    ])
+      .then(([resSettings, resInfo]) => {
+        setMaintenanceMode(resSettings.maintenance_mode ?? false);
+        setRegistrasiBuka(resSettings.registrasi_buka ?? true);
+        setSystemInfo(resInfo);
       })
-      .catch(err => console.error("Gagal load setting", err))
+      .catch(err => console.error("Gagal load setting atau info", err))
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -107,13 +98,8 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
       await fetchWithAuth('/admin/settings', {
         method: 'PUT',
         body: JSON.stringify({
-          notif_pengguna: notifPengguna,
-          notif_prediksi: notifPrediksi,
-          notif_email: notifEmail,
           maintenance_mode: maintenanceMode,
-          registrasi_buka: registrasiBuka,
-          auto_backup: autoBackup,
-          log_aktivitas: logAktivitas
+          registrasi_buka: registrasiBuka
         })
       });
       
@@ -231,36 +217,16 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
         </div>
       </SectionCard>
 
-      {/* ── Notifikasi ── */}
-      <SectionCard title="Notifikasi" icon={Bell}>
-        <SettingRow label="Pengguna Baru Daftar" desc="Notifikasi saat ada akun baru yang menunggu verifikasi">
-          <Toggle enabled={notifPengguna} onChange={setNotifPengguna} />
-        </SettingRow>
-        <SettingRow label="Prediksi Masuk" desc="Notifikasi saat ada prediksi panen baru dari petani">
-          <Toggle enabled={notifPrediksi} onChange={setNotifPrediksi} />
-        </SettingRow>
-
-        <SettingRow label="Kirim via Email" desc="Kirim notifikasi ke email admin (memerlukan konfigurasi SMTP)">
-          <Toggle enabled={notifEmail} onChange={setNotifEmail} />
-        </SettingRow>
-      </SectionCard>
-
       {/* ── Sistem ── */}
       <SectionCard title="Pengaturan Sistem" icon={Server}>
         <SettingRow
           label="Mode Pemeliharaan"
-          desc="Saat aktif, situs tidak dapat diakses pengguna. Hanya admin yang bisa login."
+          desc="Saat aktif, situs tidak dapat diakses pengguna umum. Hanya admin yang bisa login."
         >
           <Toggle enabled={maintenanceMode} onChange={setMaintenanceMode} />
         </SettingRow>
-        <SettingRow label="Registrasi Pengguna Baru" desc="Izinkan petani membuat akun baru">
+        <SettingRow label="Registrasi Pengguna Baru" desc="Izinkan pengguna/petani membuat akun baru di halaman depan">
           <Toggle enabled={registrasiBuka} onChange={setRegistrasiBuka} />
-        </SettingRow>
-        <SettingRow label="Backup Otomatis" desc="Backup database harian secara otomatis pukul 00.00 WIB">
-          <Toggle enabled={autoBackup} onChange={setAutoBackup} />
-        </SettingRow>
-        <SettingRow label="Log Aktivitas" desc="Catat semua aktivitas pengguna dan admin">
-          <Toggle enabled={logAktivitas} onChange={setLogAktivitas} />
         </SettingRow>
       </SectionCard>
 
@@ -276,10 +242,10 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: Server,   label: "Versi Aplikasi",    val: "SiPadiPrediksi v2.1.0" },
-            { icon: Database, label: "Status Database",   val: "🟢 Terhubung" },
-            { icon: Wifi,     label: "Status Model ML",   val: "🟢 Siap digunakan" },
-            { icon: Clock,    label: "Waktu Server",      val: new Date().toLocaleString("id-ID", { weekday: "long", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " WIB" },
+            { icon: Server,   label: "Versi Aplikasi",    val: systemInfo?.version || "-" },
+            { icon: Database, label: "Status Database",   val: systemInfo?.db_status || "-" },
+            { icon: Wifi,     label: "Status Model ML",   val: systemInfo?.ml_status || "-" },
+            { icon: Clock,    label: "Waktu Server",      val: systemInfo?.server_time || "-" },
             { icon: Globe,    label: "Environment",       val: import.meta.env.MODE === "production" ? "🔵 Production" : "🟡 Development" },
             { icon: Shield,   label: "Sesi Login",        val: `Aktif sebagai ${adminName}` },
           ].map((info) => (
