@@ -159,12 +159,16 @@ def get_all_predictions(db: Session = Depends(get_db), admin: User = Depends(req
             "id": p.Prediction.id,
             "tanggal": p.Prediction.created_at.strftime("%d %b %Y") if p.Prediction.created_at else "N/A",
             "petani": p.User.nama_lengkap,
-            "lokasi": p.Prediction.provinsi,
-            "varietas": p.Prediction.cultivar_name,
+            "provinsi": p.Prediction.provinsi,
+            "cultivar": p.Prediction.cultivar_name,
             "pupukN": p.Prediction.n_total_kg_ha,
             "luas": p.Prediction.luas_lahan_ha,
             "yieldKgHa": p.Prediction.yield_kg_ha,
-            "kategori": p.Prediction.kategori
+            "kategori": p.Prediction.kategori,
+            "sowingDoy": p.Prediction.sowing_doy,
+            "nTotal": p.Prediction.n_total_kg_ha,
+            "plantPop": p.Prediction.plant_pop,
+            "waterCode": p.Prediction.water_code
         }
         for p in preds
     ]
@@ -344,10 +348,11 @@ def get_system_info(db: Session = Depends(get_db), admin: User = Depends(require
     except Exception:
         db_status = "🔴 Gagal terhubung"
 
+    from app.config import settings
     import os
-    # Cek model (asumsi model_rf.pkl atau sejenisnya ada di folder app/ml_models)
-    model_path = "app/ml_models/random_forest_model.pkl"
-    ml_status = "🟢 Siap digunakan" if os.path.exists(model_path) else "🔴 Model tidak ditemukan"
+    # Cek model 
+    model_path = settings.MODEL_PATH
+    ml_status = "🟢 Siap digunakan (XGBoost)" if os.path.exists(model_path) else "🔴 Model tidak ditemukan"
 
     return {
         "version": "v2.1.0",
