@@ -223,12 +223,12 @@ export function AdminPengaturan({ adminName, adminEmail }: Props) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: Server,   label: "Versi Aplikasi",    val: "SiPadiPrediksi v2.0.1" },
-            { icon: Database, label: "Status Database",   val: "🟢 Online · 42 ms" },
+            { icon: Server,   label: "Versi Aplikasi",    val: "SiPadiPrediksi v2.1.0" },
+            { icon: Database, label: "Status Database",   val: "🟢 Terhubung" },
             { icon: Wifi,     label: "Status Model ML",   val: "🟢 Siap digunakan" },
-            { icon: Clock,    label: "Server Time",        val: "Senin, 14 Apr 2026 · 14:23 WIB" },
-            { icon: Database, label: "Backup Terakhir",    val: "14 Apr 2026 · 00:01 WIB" },
-            { icon: Shield,   label: "Sesi Login Admin",  val: "Aktif sejak 13:45 WIB" },
+            { icon: Clock,    label: "Waktu Server",      val: new Date().toLocaleString("id-ID", { weekday: "long", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " WIB" },
+            { icon: Globe,    label: "Environment",       val: import.meta.env.MODE === "production" ? "🔵 Production" : "🟡 Development" },
+            { icon: Shield,   label: "Sesi Login",        val: `Aktif sebagai ${adminName}` },
           ].map((info) => (
             <div key={info.label} className="bg-gray-50 rounded-xl p-3.5">
               <div className="flex items-center gap-2 mb-1">

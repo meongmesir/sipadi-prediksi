@@ -324,9 +324,9 @@ export function AdminKelolaAdmin() {
           nama: u.nama_lengkap,
           email: u.email,
           tglDibuat: u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "Tidak diketahui",
-          loginTerakhir: "Baru-baru ini",
-          jumlahAksi: u.role === "superadmin" ? 99 : 10,
-          status: "Aktif" as const
+          loginTerakhir: u.last_login ? new Date(u.last_login).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Belum pernah login",
+          jumlahAksi: u.jumlah_prediksi || 0,
+          status: u.is_active ? "Aktif" as const : "Nonaktif" as const
         }));
         setAdmins(mapped);
       })
@@ -360,10 +360,10 @@ export function AdminKelolaAdmin() {
 
   const handleTambahAdmin = (nama: string, email: string) => {
     const newAdmin: AdminData = {
-      id: admins.length + 1,
+      id: Date.now(),
       nama,
       email,
-      tglDibuat: "14 Apr 2026",
+      tglDibuat: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
       loginTerakhir: "Belum pernah login",
       jumlahAksi: 0,
       status: "Aktif",
@@ -396,7 +396,7 @@ export function AdminKelolaAdmin() {
           { label: "Total Admin",     nilai: admins.length,                                         bg: "bg-violet-50",  text: "text-violet-700", icon: "🛡️" },
           { label: "Admin Aktif",     nilai: totalAktif,                                            bg: "bg-green-50",   text: "text-green-700",  icon: "✅" },
           { label: "Admin Nonaktif",  nilai: admins.filter((a) => a.status === "Nonaktif").length,  bg: "bg-gray-50",    text: "text-gray-600",   icon: "⏸️" },
-          { label: "Aksi Total",      nilai: admins.reduce((acc, a) => acc + a.jumlahAksi, 0),      bg: "bg-amber-50",   text: "text-amber-700",  icon: "⚡" },
+          { label: "Total Prediksi",  nilai: admins.reduce((acc, a) => acc + a.jumlahAksi, 0),      bg: "bg-amber-50",   text: "text-amber-700",  icon: "📊" },
         ].map((s) => (
           <div key={s.label} className={`${s.bg} rounded-2xl p-4 border border-transparent`}>
             <p className="text-xl mb-2">{s.icon}</p>
