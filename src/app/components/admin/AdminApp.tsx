@@ -10,7 +10,6 @@ import { AdminPengguna } from "./AdminPengguna";
 import { AdminKelolaAdmin } from "./AdminKelolaAdmin";
 import { AdminPrediksi } from "./AdminPrediksi";
 import { AdminLaporan } from "./AdminLaporan";
-import { AdminPengaturan } from "./AdminPengaturan";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type AdminPage =
