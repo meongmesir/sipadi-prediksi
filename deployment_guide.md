@@ -37,6 +37,7 @@ Render adalah layanan PaaS (Platform as a Service) yang sangat mudah untuk men-*
    - `JWT_ALGORITHM` = `HS256`
    - `JWT_EXPIRE_HOURS` = `24`
    - `MODEL_PATH` = `ml_models/xgboost.joblib`
+   - `PYTHON_VERSION` = `3.11.9` *(Sangat Krusial untuk menghindari error build Pydantic/Rust)*
 5. **Deploy**:
    Klik tombol **"Create Web Service"**.
 6. **Dapatkan URL Backend**:
