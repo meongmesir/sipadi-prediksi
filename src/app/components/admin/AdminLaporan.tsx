@@ -53,16 +53,6 @@ export function AdminLaporan() {
           <h1 className="text-gray-900 font-bold text-2xl">Laporan</h1>
           <p className="text-gray-500 text-sm">Ringkasan & analisis data sistem SiPadiPrediksi</p>
         </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 border-2 border-gray-200 hover:border-green-500 text-gray-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors">
-            <FileText className="w-4 h-4" />
-            Export PDF
-          </button>
-          <button className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-sm">
-            <Download className="w-4 h-4" />
-            Export Excel
-          </button>
-        </div>
       </div>
 
       {/* ── Filter ── */}

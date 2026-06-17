@@ -18,8 +18,7 @@ export type AdminPage =
   | "pengguna"
   | "kelola-admin"
   | "prediksi"
-  | "laporan"
-  | "pengaturan";
+  | "laporan";
 
 interface NavItem {
   page: AdminPage;
@@ -47,7 +46,6 @@ const superAdminNavItems: NavItem[] = [
   { page: "kelola-admin", label: "Kelola Admin",    icon: UserCog,    dividerBefore: false },
   { page: "prediksi",     label: "Data Prediksi",   icon: BarChart3,  dividerBefore: true },
   { page: "laporan",      label: "Laporan",         icon: FileText },
-  { page: "pengaturan",   label: "Pengaturan",      icon: Settings,   dividerBefore: true },
 ];
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
@@ -184,15 +182,6 @@ export function AdminApp({ user, onLogout, role }: Props) {
                     </div>
                   </div>
                   <div className="py-1">
-                    {isSuperAdmin && (
-                      <button
-                        onClick={() => { navigate("pengaturan"); setUserMenuOpen(false); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-gray-700 text-sm transition-colors"
-                      >
-                        <Settings className="w-4 h-4 text-gray-400" />
-                        Pengaturan Sistem
-                      </button>
-                    )}
                   </div>
                   <div className="border-t border-gray-100 py-1">
                     <button
@@ -298,7 +287,6 @@ export function AdminApp({ user, onLogout, role }: Props) {
             {page === "kelola-admin" && isSuperAdmin && <AdminKelolaAdmin />}
             {page === "prediksi"     && <AdminPrediksi />}
             {page === "laporan"      && <AdminLaporan />}
-            {page === "pengaturan"   && isSuperAdmin && <AdminPengaturan adminName={user.namaLengkap} adminEmail={user.email} />}
           </div>
         </main>
       </div>
