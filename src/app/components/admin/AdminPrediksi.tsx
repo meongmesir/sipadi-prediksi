@@ -129,6 +129,22 @@ export function AdminPrediksi() {
 
   const rataHasil = predictions.length > 0 ? Math.round(predictions.reduce((s, p) => s + p.yieldKgHa, 0) / predictions.length) : 0;
 
+  const getPaginationGroup = () => {
+    const pages = [];
+    if (totalPage <= 7) {
+      for (let i = 1; i <= totalPage; i++) pages.push(i);
+    } else {
+      if (currentPage <= 4) {
+        pages.push(1, 2, 3, 4, 5, '...', totalPage);
+      } else if (currentPage >= totalPage - 3) {
+        pages.push(1, '...', totalPage - 4, totalPage - 3, totalPage - 2, totalPage - 1, totalPage);
+      } else {
+        pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPage);
+      }
+    }
+    return pages;
+  };
+
   if (loading) return <div className="p-8 text-center text-gray-500"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" /> Memuat data prediksi...</div>;
 
   return (
@@ -140,10 +156,6 @@ export function AdminPrediksi() {
           <h1 className="text-gray-900 font-bold text-2xl">Data Prediksi</h1>
           <p className="text-gray-500 text-sm">{predictions.length} prediksi · rata-rata {rataHasil.toLocaleString("id-ID")} kg/ha</p>
         </div>
-        <button className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-colors shadow-sm">
-          <Download className="w-4 h-4" />
-          Export Excel
-        </button>
       </div>
 
       {/* ── Summary Cards ── */}
@@ -270,16 +282,20 @@ export function AdminPrediksi() {
             >
               <ChevronLeft className="w-4 h-4 text-gray-600" />
             </button>
-            {Array.from({ length: totalPage }, (_, i) => i + 1).map((n) => (
-              <button
-                key={n}
-                onClick={() => setCurrentPage(n)}
-                className={`w-9 h-9 rounded-xl text-sm font-semibold transition-colors ${
-                  currentPage === n ? "bg-green-700 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {n}
-              </button>
+            {getPaginationGroup().map((n, i) => (
+              n === '...' ? (
+                <span key={`ell-${i}`} className="px-2 text-gray-400">...</span>
+              ) : (
+                <button
+                  key={`page-${n}`}
+                  onClick={() => setCurrentPage(n as number)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-semibold transition-colors ${
+                    currentPage === n ? "bg-green-700 text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {n}
+                </button>
+              )
             ))}
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPage, p + 1))}
