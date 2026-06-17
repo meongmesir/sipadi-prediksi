@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://sipadi-backend.onrender.com/api/$1"
+      "destination": "https://sipadi-prediksi.onrender.com/api/$1"
     }
   ]
 }
